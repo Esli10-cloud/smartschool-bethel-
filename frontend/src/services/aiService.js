@@ -18,15 +18,21 @@ export const askSmartSchoolAI = async (userPrompt) => {
     `;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-1.5-flash',
       contents: [
-        { role: 'user', parts: [{ text: systemContext }, { text: userPrompt }] }
+        {
+          role: 'user',
+          parts: [
+            { text: systemContext },
+            { text: userPrompt }
+          ]
+        }
       ]
     });
 
     return response.text;
   } catch (error) {
-    console.error("Erreur IA :", error);
+    console.error("Erreur IA détaillée :", error);
     return "Impossible d'obtenir une réponse pour le moment.";
   }
 };
