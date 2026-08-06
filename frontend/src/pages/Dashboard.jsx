@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
+import AISearchBar from "../components/AISearchBar";
 import { Users, GraduationCap, Wallet, BookOpen, ArrowUpRight, Plus, CreditCard, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -89,6 +90,11 @@ export default function Dashboard() {
             <p style={{ fontSize: "14px", color: "#64748b", margin: "4px 0 0 0" }}>
               Bienvenue sur la plateforme SmartSchool Bethel. Voici les statistiques en temps réel.
             </p>
+          </div>
+
+          {/* BARRE DE RECHERCHE IA */}
+          <div style={{ marginBottom: "30px" }}>
+            <AISearchBar />
           </div>
 
           {/* 4 CARTES D'INDICATEURS (KPIs) */}
