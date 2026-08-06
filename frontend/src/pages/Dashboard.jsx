@@ -139,7 +139,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Carte Classes Actives (DYNAMIQUE) */}
+            {/* Carte Classes Actives */}
             <div style={{ background: "white", padding: "20px", borderRadius: "12px", border: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
                 <p style={{ fontSize: "13px", color: "#64748b", margin: 0, fontWeight: "500" }}>Classes Actives</p>
