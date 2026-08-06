@@ -1,5 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
-import { supabase } from '../supabaseClient'; // Vérifie le chemin de ton client Supabase
+import { supabase } from '../lib/supabase';
 
 const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
 
