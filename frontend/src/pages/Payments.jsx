@@ -98,7 +98,7 @@ export default function Payments() {
   const [selectedStudentId, setSelectedStudentId] = useState("");
   const [amount, setAmount] = useState("");
   const [paymentMode, setPaymentMode] = useState("Espèces");
-  const [payInscription, setPayInscription] = useState(true); // Toujours coché par défaut (obligatoire)
+  const [payInscription, setPayInscription] = useState(true);
   const [payPaperRame, setPayPaperRame] = useState(false);
   const [payDortoir, setPayDortoir] = useState(false);
   const [paymentNote, setPaymentNote] = useState("");
@@ -112,13 +112,11 @@ export default function Payments() {
       setLoading(true);
       setErrorMessage(null);
       try {
-        // 1. Récupérer la session Supabase active
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         if (sessionError) throw sessionError;
 
         if (session) {
           const userId = session.user.id;
-          // 2. Interroger la table "profiles" pour obtenir le nom et le rôle
           const { data: profileData, error: profileErr } = await supabase
             .from("profiles")
             .select("full_name, role")
@@ -136,7 +134,6 @@ export default function Payments() {
           });
         }
 
-        // 3. Charger les données du module
         const { data: stData, error: stErr } = await supabase
           .from("students")
           .select("id, matricule, nom, prenom, classe, is_affecte_etat, created_at");
@@ -190,7 +187,6 @@ export default function Payments() {
         action: actionType,
         details: detailsText
       }]);
-      // Rafraîchir les logs si nécessaire
       const { data: logData } = await supabase
         .from("audit_logs")
         .select("*")
@@ -286,6 +282,11 @@ export default function Payments() {
       if (!confirmOverpay) return;
     }
 
+    // Fusion de l'option Dortoir dans le champ notes
+    const finalNotes = payDortoir
+      ? (paymentNote ? `${paymentNote} [Option Dortoir]` : "[Option Dortoir]")
+      : paymentNote;
+
     const newPaymentObj = {
       student_id: selectedStudentId,
       amount: versementActuel,
@@ -297,8 +298,7 @@ export default function Payments() {
       reste_a_payer: resteAPayer,
       paye_inscription: payInscription,
       paye_rame: payPaperRame,
-      paye_dortoir: payDortoir,
-      notes: paymentNote,
+      notes: finalNotes,
       user_name: currentUser.nom,
     };
 
@@ -327,7 +327,6 @@ export default function Payments() {
           `Encaissement de ${versementActuel.toLocaleString()} CFA (N° Transaction ${data[0].id}) par ${currentUser.nom} pour l'élève ID ${selectedStudentId} [Année: ${academicYear}]`
         );
 
-        // Recharger les paiements
         const { data: payData } = await supabase
           .from("payments")
           .select(`*, students(id, matricule, nom, prenom, classe, is_affecte_etat, created_at)`)
@@ -735,7 +734,6 @@ export default function Payments() {
                 </select>
               </div>
 
-              {/* Affichage informatif de l'utilisateur et du rôle réel (sans menu déroulant de test) */}
               <div style={{ background: "#eff6ff", padding: "6px 12px", borderRadius: "8px", border: "1px solid #bfdbfe", display: "flex", alignItems: "center", gap: "8px", fontSize: "12px" }}>
                 <span style={{ fontWeight: "700", color: "#1e40af" }}>Connecté :</span>
                 <span style={{ color: "#334155", fontWeight: "600" }}>{currentUser.nom} ({currentUser.role})</span>
