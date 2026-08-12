@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@google/genai": "^2.16.0",
+    "react-hook-form": "^7.83.0",
+    "react-hot-toast": "^2.6.0",
+    "react-icons": "^5.7.0"
+  }
+}
