@@ -278,8 +278,8 @@ export default function Payments() {
   const totalInscription = (payInscription && !alreadyPaidInscriptionHistory) ? EXTRA_FEES.INSCRIPTION_FEE : 0;
   const totalRame = (payPaperRame && !alreadyPaidRameHistory) ? EXTRA_FEES.PAPER_RAME_FEE : 0;
   
-  // LE DORTOIR EST EXCLU DU CALCUL DE SCOLARITÉ
-  const totalAttendu = fees.total + totalInscription + totalRame;
+  // LE TOTAL ATTENDU GLOBAL INCLUT TOUJOURS LA SCOLARITÉ + FRAIS FIXES ANNUELS DE BASE
+  const totalAttendu = fees.total + EXTRA_FEES.INSCRIPTION_FEE + EXTRA_FEES.PAPER_RAME_FEE;
 
   const totalDejaPaye = activeStudentPayments.reduce(
     (sum, p) => sum + parseInt(p.amount || p.montant || 0, 10),
@@ -556,7 +556,7 @@ export default function Payments() {
     const stPays = payments.filter(p => String(p.student_id) === String(st.id) && !p.is_cancelled);
     const totalPaye = stPays.reduce((sum, p) => sum + parseInt(p.amount || p.montant || 0, 10), 0);
     const fDetails = getFeeDetails(st);
-    const totalExigibleSt = fDetails.total + EXTRA_FEES.INSCRIPTION_FEE;
+    const totalExigibleSt = fDetails.total + EXTRA_FEES.INSCRIPTION_FEE + EXTRA_FEES.PAPER_RAME_FEE;
     const reste = Math.max(0, totalExigibleSt - totalPaye);
     return { ...st, totalPaye, totalExigibleSt, reste };
   });
@@ -1474,18 +1474,18 @@ export default function Payments() {
                   </div>
                 </>
               ) : (
-                <>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "3px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
                     <span>Total Scolarité Exigible :</span>
                     <strong>{(selectedReceipt.total_exigible || 0).toLocaleString()} CFA</strong>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "3px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
                     <span>Montant versé ce jour :</span>
                     <strong style={{ color: selectedReceipt.is_cancelled ? "#dc2626" : "#16a34a" }}>
                       {parseInt(selectedReceipt.amount || selectedReceipt.montant || 0, 10).toLocaleString()} CFA
                     </strong>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "3px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
                     <span>Cumul total réglé :</span>
                     <strong style={{ color: "#2563eb" }}>
                       {(selectedReceipt.cumul_paye || 0).toLocaleString()} CFA
@@ -1498,7 +1498,7 @@ export default function Payments() {
                       {(selectedReceipt.reste_a_payer || 0).toLocaleString()} CFA
                     </span>
                   </div>
-                </>
+                </div>
               )}
             </div>
 
@@ -1522,7 +1522,7 @@ export default function Payments() {
                 <Download size={16} /> Télécharger PDF
               </button>
               <button onClick={() => window.print()} style={{ padding: "6px 14px", borderRadius: "6px", border: "none", background: "#2563eb", color: "white", fontWeight: "600", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "6px" }}>
-                <Printer size5={16} /> Imprimer Reçu
+                <Printer size={16} /> Imprimer Reçu
               </button>
             </div>
           </div>
