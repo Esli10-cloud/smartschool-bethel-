@@ -282,10 +282,13 @@ export default function Payments() {
       if (!confirmOverpay) return;
     }
 
-    // Fusion de l'option Dortoir dans le champ notes
-    const finalNotes = payDortoir
-      ? (paymentNote ? `${paymentNote} [Option Dortoir]` : "[Option Dortoir]")
-      : paymentNote;
+    // Inclusion des options et du nom de l'agent dans les notes
+    const extraDetails = [];
+    if (payDortoir) extraDetails.push("Option Dortoir");
+    if (currentUser.nom) extraDetails.push(`Agent: ${currentUser.nom}`);
+
+    const detailsStr = extraDetails.length > 0 ? ` [${extraDetails.join(" | ")}]` : "";
+    const finalNotes = paymentNote ? `${paymentNote}${detailsStr}` : detailsStr.trim();
 
     const newPaymentObj = {
       student_id: selectedStudentId,
@@ -299,7 +302,6 @@ export default function Payments() {
       paye_inscription: payInscription,
       paye_rame: payPaperRame,
       notes: finalNotes,
-      user_name: currentUser.nom,
     };
 
     try {
@@ -446,7 +448,7 @@ export default function Payments() {
   };
 
   const exportToCSV = () => {
-    const headers = ["N° Transaction", "Date", "Statut", "Matricule", "Nom", "Prenom", "Classe", "Mode", "Montant", "Caissier", "Notes"];
+    const headers = ["N° Transaction", "Date", "Statut", "Matricule", "Nom", "Prenom", "Classe", "Mode", "Montant", "Notes"];
     const rows = filteredPayments.map(p => {
       const { nomFormatted, prenomFormatted } = formatNomPrenom(p.students?.nom, p.students?.prenom);
       return [
@@ -459,7 +461,6 @@ export default function Payments() {
         p.students?.classe || "",
         p.mode || "Espèces",
         p.amount || p.montant || 0,
-        p.user_name || "Admin",
         `"${(p.notes || "").replace(/"/g, '""')}"`
       ];
     });
@@ -1141,7 +1142,7 @@ export default function Payments() {
                       <th style={{ padding: "10px 14px" }}>Matricule</th>
                       <th style={{ padding: "10px 14px" }}>Nom & Prénom</th>
                       <th style={{ padding: "10px 14px" }}>Mode</th>
-                      <th style={{ padding: "10px 14px" }}>Caissier</th>
+                      <th style={{ padding: "10px 14px" }}>Caissier / Agent</th>
                       <th style={{ padding: "10px 14px", textAlign: "right" }}>Montant</th>
                     </tr>
                   </thead>
@@ -1158,7 +1159,7 @@ export default function Payments() {
                             <td style={{ padding: "10px 14px", color: "#2563eb", fontWeight: "600" }}>{p.students?.matricule}</td>
                             <td style={{ padding: "10px 14px", fontWeight: "600", color: "#1e293b" }}>{nomFormatted} {prenomFormatted}</td>
                             <td style={{ padding: "10px 14px" }}>{p.mode || "Espèces"}</td>
-                            <td style={{ padding: "10px 14px", fontWeight: "600", color: "#475569" }}>{p.user_name || "Admin"}</td>
+                            <td style={{ padding: "10px 14px", fontWeight: "600", color: "#475569" }}>{currentUser.nom || "Admin"}</td>
                             <td style={{ padding: "10px 14px", textAlign: "right", color: "#16a34a", fontWeight: "700" }}>{parseInt(p.amount || p.montant || 0, 10).toLocaleString()} CFA</td>
                           </tr>
                         );
