@@ -249,7 +249,6 @@ export default function Payments() {
   const totalInscription = payInscription ? EXTRA_FEES.INSCRIPTION_FEE : 0;
   const totalRame = payPaperRame ? EXTRA_FEES.PAPER_RAME_FEE : 0;
   
-  // LE DORTOIR EST EXCLU DU CALCUL DE SCOLARITÉ
   const totalAttendu = fees.total + totalInscription + totalRame;
 
   const activeStudentPayments = payments.filter(
@@ -276,7 +275,7 @@ export default function Payments() {
     }
 
     const extraDetails = [];
-    if (payDortoir) extraDetails.push("Paiement Dortoir Indépendant (25 000 F)");
+    if (payDortoir) extraDetails.push("Option Dortoir : 25 000 CFA");
     if (currentUser.nom) extraDetails.push(`Agent: ${currentUser.nom}`);
 
     const detailsStr = extraDetails.length > 0 ? ` [${extraDetails.join(" | ")}]` : "";
@@ -408,6 +407,13 @@ export default function Payments() {
     doc.setTextColor(146, 64, 14);
     doc.text(`REÇU DE PAIEMENT N° ${p.id}`, 74, 34, { align: "center" });
 
+    const bodyData = [];
+    if (p.notes && p.notes.includes("Option Dortoir")) {
+      bodyData.push(['Frais Dortoir / Internat :', '25 000 CFA']);
+    }
+    bodyData.push(['Montant Versé ce jour :', `${parseInt(p.amount || 0, 10).toLocaleString()} CFA`]);
+    bodyData.push(['RESTE À PAYER (SCOLARITÉ) :', `${(p.reste_a_payer || 0).toLocaleString()} CFA`]);
+
     doc.autoTable({
       startY: 38,
       theme: 'grid',
@@ -418,10 +424,7 @@ export default function Payments() {
         ['Matricule :', p.students?.matricule || "-"],
         ['Classe :', p.students?.classe || "-"],
         ['Élève :', `${nomFormatted} ${prenomFormatted}`],
-        ['Total Scolarité Exigible :', `${(p.total_exigible || 0).toLocaleString()} CFA`],
-        ['Montant Versé ce jour :', `${parseInt(p.amount || 0, 10).toLocaleString()} CFA`],
-        ['Cumul Total Réglé :', `${(p.cumul_paye || 0).toLocaleString()} CFA`],
-        ['RESTE À PAYER :', `${(p.reste_a_payer || 0).toLocaleString()} CFA`],
+        ...bodyData
       ],
       styles: { fontSize: 8, cellPadding: 2 },
     });
@@ -1276,7 +1279,7 @@ export default function Payments() {
                 </label>
                 <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", background: "#fef3c7", padding: "6px", borderRadius: "6px", border: "1px solid #fde68a" }}>
                   <input type="checkbox" checked={payDortoir} onChange={(e) => setPayDortoir(e.target.checked)} />
-                  <span><strong>Option Dortoir / Internat (+25 000 CFA)</strong> — <em>Paiement indépendant (non inclus dans le total scolarité)</em></span>
+                  <span><strong>Option Dortoir / Internat (+25 000 CFA)</strong> — <em>Paiement indépendant</em></span>
                 </label>
               </div>
 
@@ -1402,19 +1405,27 @@ export default function Payments() {
             })()}
 
             <div style={{ background: "#fff", padding: "6px 10px", borderRadius: "6px", border: "1px solid #cbd5e1", marginBottom: "12px", fontSize: "10.5px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "3px" }}>
-                <span>Total Scolarité Exigible :</span><strong>{(selectedReceipt.total_exigible || 0).toLocaleString()} CFA</strong>
+              {selectedReceipt.notes && selectedReceipt.notes.includes("Option Dortoir") && (
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px", color: "#b45309", fontWeight: "700" }}>
+                  <span>Montant du Dortoir / Internat :</span>
+                  <span>25 000 CFA</span>
+                </div>
+              )}
+              
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+                <span>Montant versé ce jour :</span>
+                <strong style={{ color: selectedReceipt.is_cancelled ? "#dc2626" : "#16a34a" }}>
+                  {parseInt(selectedReceipt.amount || selectedReceipt.montant || 0, 10).toLocaleString()} CFA
+                </strong>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "3px" }}>
-                <span>Montant versé ce jour :</span><strong style={{ color: selectedReceipt.is_cancelled ? "#dc2626" : "#16a34a" }}>{parseInt(selectedReceipt.amount || selectedReceipt.montant || 0, 10).toLocaleString()} CFA</strong>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "3px" }}>
-                <span>Cumul total réglé :</span><strong style={{ color: "#2563eb" }}>{(selectedReceipt.cumul_paye || 0).toLocaleString()} CFA</strong>
-              </div>
-              <hr style={{ margin: "4px 0", border: "0", borderTop: "1px dashed #cbd5e1" }} />
+
+              <hr style={{ margin: "6px 0", border: "0", borderTop: "1px dashed #cbd5e1" }} />
+
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", fontWeight: "800" }}>
                 <span>RESTE À PAYER (SCOLARITÉ) :</span>
-                <span style={{ color: (selectedReceipt.reste_a_payer || 0) > 0 ? "#dc2626" : "#16a34a" }}>{(selectedReceipt.reste_a_payer || 0).toLocaleString()} CFA</span>
+                <span style={{ color: (selectedReceipt.reste_a_payer || 0) > 0 ? "#dc2626" : "#16a34a" }}>
+                  {(selectedReceipt.reste_a_payer || 0).toLocaleString()} CFA
+                </span>
               </div>
             </div>
 
