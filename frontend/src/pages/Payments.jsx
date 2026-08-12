@@ -62,7 +62,7 @@ export default function Payments() {
   // Année scolaire active : 2026-2027 par défaut
   const [academicYear, setAcademicYear] = useState("2026-2027");
 
-  // Utilisateur connecté réel (récupéré depuis Supabase)
+  // Utilisateur connecté réel
   const [currentUser, setCurrentUser] = useState({
     id: null,
     nom: "Utilisateur",
@@ -106,7 +106,6 @@ export default function Payments() {
   // Remises & bourses
   const [customReductions, setCustomReductions] = useState({});
 
-  // Récupération de l'utilisateur connecté et de son rôle réel
   useEffect(() => {
     const fetchUserAndData = async () => {
       setLoading(true);
@@ -249,8 +248,9 @@ export default function Payments() {
   const fees = selectedStudent ? getFeeDetails(selectedStudent) : { tr1: 0, tr2: 0, tr3: 0, total: 0, baseTotal: 0, reduction: 0 };
   const totalInscription = payInscription ? EXTRA_FEES.INSCRIPTION_FEE : 0;
   const totalRame = payPaperRame ? EXTRA_FEES.PAPER_RAME_FEE : 0;
-  const totalDortoir = payDortoir ? EXTRA_FEES.DORTOIR_FEE : 0;
-  const totalAttendu = fees.total + totalInscription + totalRame + totalDortoir;
+  
+  // LE DORTOIR EST EXCLU DU CALCUL DE SCOLARITÉ
+  const totalAttendu = fees.total + totalInscription + totalRame;
 
   const activeStudentPayments = payments.filter(
     (p) => String(p.student_id) === String(selectedStudentId) && 
@@ -275,16 +275,8 @@ export default function Payments() {
       return;
     }
 
-    if (versementActuel > resteActuelAvantPaiement && resteActuelAvantPaiement > 0) {
-      const confirmOverpay = window.confirm(
-        `Attention : Le montant saisi (${versementActuel.toLocaleString()} CFA) dépasse le reste à payer de l'élève (${resteActuelAvantPaiement.toLocaleString()} CFA). Voulez-vous continuer ?`
-      );
-      if (!confirmOverpay) return;
-    }
-
-    // Inclusion des options et du nom de l'agent dans les notes
     const extraDetails = [];
-    if (payDortoir) extraDetails.push("Option Dortoir");
+    if (payDortoir) extraDetails.push("Paiement Dortoir Indépendant (25 000 F)");
     if (currentUser.nom) extraDetails.push(`Agent: ${currentUser.nom}`);
 
     const detailsStr = extraDetails.length > 0 ? ` [${extraDetails.join(" | ")}]` : "";
@@ -1282,14 +1274,14 @@ export default function Payments() {
                   <input type="checkbox" checked={payPaperRame} onChange={(e) => setPayPaperRame(e.target.checked)} />
                   <span>Rame de papier (+3 500 CFA)</span>
                 </label>
-                <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", background: "#fef3c7", padding: "6px", borderRadius: "6px", border: "1px solid #fde68a" }}>
                   <input type="checkbox" checked={payDortoir} onChange={(e) => setPayDortoir(e.target.checked)} />
-                  <span>Option Dortoir / Internat (+25 000 CFA)</span>
+                  <span><strong>Option Dortoir / Internat (+25 000 CFA)</strong> — <em>Paiement indépendant (non inclus dans le total scolarité)</em></span>
                 </label>
               </div>
 
               <div style={{ marginTop: "8px", paddingTop: "8px", borderTop: "1px solid #cbd5e1", display: "flex", justifyContent: "space-between", fontWeight: "800", fontSize: "14px", background: "#fef2f2", padding: "8px", borderRadius: "6px" }}>
-                <span style={{ color: "#991b1b" }}>Reste à payer actuel :</span>
+                <span style={{ color: "#991b1b" }}>Reste à payer scolarité :</span>
                 <span style={{ color: resteActuelAvantPaiement > 0 ? "#dc2626" : "#16a34a" }}>{resteActuelAvantPaiement.toLocaleString()} CFA</span>
               </div>
             </div>
@@ -1311,7 +1303,7 @@ export default function Payments() {
           {selectedStudent && versementActuel > 0 && (
             <div style={{ background: "#f0fdf4", padding: "12px", borderRadius: "8px", marginBottom: "16px", border: "1px solid #bbf7d0" }}>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", color: "#166534" }}>
-                <span>Nouveau Reste à Payer après ce versement :</span>
+                <span>Nouveau Reste à Payer Scolarité après ce versement :</span>
                 <strong style={{ color: resteAPayer > 0 ? "#dc2626" : "#16a34a", fontSize: "15px" }}>{resteAPayer.toLocaleString()} CFA</strong>
               </div>
             </div>
@@ -1421,7 +1413,7 @@ export default function Payments() {
               </div>
               <hr style={{ margin: "4px 0", border: "0", borderTop: "1px dashed #cbd5e1" }} />
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", fontWeight: "800" }}>
-                <span>RESTE À PAYER :</span>
+                <span>RESTE À PAYER (SCOLARITÉ) :</span>
                 <span style={{ color: (selectedReceipt.reste_a_payer || 0) > 0 ? "#dc2626" : "#16a34a" }}>{(selectedReceipt.reste_a_payer || 0).toLocaleString()} CFA</span>
               </div>
             </div>
