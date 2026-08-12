@@ -178,6 +178,24 @@ export default function Payments() {
     fetchUserAndData();
   }, []);
 
+  // Détecter automatiquement si l'élève a déjà payé l'inscription ou la rame lors de l'ouverture ou du changement d'élève
+  useEffect(() => {
+    if (selectedStudentId) {
+      const studentPayments = payments.filter(
+        (p) => String(p.student_id) === String(selectedStudentId) && 
+               !p.is_cancelled && 
+               (p.academic_year ? p.academic_year === academicYear : true)
+      );
+
+      const alreadyPaidInscription = studentPayments.some(p => p.paye_inscription === true);
+      const alreadyPaidRame = studentPayments.some(p => p.paye_rame === true);
+
+      // Si déjà payé, on décoche par défaut pour éviter de les compter en double
+      setPayInscription(!alreadyPaidInscription);
+      setPayPaperRame(alreadyPaidRame ? false : false); 
+    }
+  }, [selectedStudentId, academicYear, payments]);
+
   const recordAuditLog = async (actionType, detailsText) => {
     try {
       await supabase.from("audit_logs").insert([{
@@ -246,17 +264,22 @@ export default function Payments() {
   };
 
   const fees = selectedStudent ? getFeeDetails(selectedStudent) : { tr1: 0, tr2: 0, tr3: 0, total: 0, baseTotal: 0, reduction: 0 };
-  const totalInscription = payInscription ? EXTRA_FEES.INSCRIPTION_FEE : 0;
-  const totalRame = payPaperRame ? EXTRA_FEES.PAPER_RAME_FEE : 0;
   
-  // LE DORTOIR EST EXCLU DU CALCUL DE SCOLARITÉ
-  const totalAttendu = fees.total + totalInscription + totalRame;
-
+  // Vérification si déjà payé dans l'historique global pour l'affichage dynamique
   const activeStudentPayments = payments.filter(
     (p) => String(p.student_id) === String(selectedStudentId) && 
            !p.is_cancelled && 
            (p.academic_year ? p.academic_year === academicYear : true)
   );
+
+  const alreadyPaidInscriptionHistory = activeStudentPayments.some(p => p.paye_inscription === true);
+  const alreadyPaidRameHistory = activeStudentPayments.some(p => p.paye_rame === true);
+
+  const totalInscription = (payInscription && !alreadyPaidInscriptionHistory) ? EXTRA_FEES.INSCRIPTION_FEE : 0;
+  const totalRame = (payPaperRame && !alreadyPaidRameHistory) ? EXTRA_FEES.PAPER_RAME_FEE : 0;
+  
+  // LE DORTOIR EST EXCLU DU CALCUL DE SCOLARITÉ
+  const totalAttendu = fees.total + totalInscription + totalRame;
 
   const totalDejaPaye = activeStudentPayments.reduce(
     (sum, p) => sum + parseInt(p.amount || p.montant || 0, 10),
@@ -291,8 +314,8 @@ export default function Payments() {
       total_exigible: totalAttendu,
       cumul_paye: nouveauCumul,
       reste_a_payer: resteAPayer,
-      paye_inscription: payInscription,
-      paye_rame: payPaperRame,
+      paye_inscription: payInscription && !alreadyPaidInscriptionHistory,
+      paye_rame: payPaperRame && !alreadyPaidRameHistory,
       notes: finalNotes,
     };
 
@@ -1276,14 +1299,32 @@ export default function Payments() {
               </div>
 
               <div style={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "6px" }}>
-                <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
-                  <input type="checkbox" checked={payInscription} onChange={(e) => setPayInscription(e.target.checked)} />
-                  <span>Frais d'inscription / réinscription (+5 000 CFA)</span>
+                <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: alreadyPaidInscriptionHistory ? "not-allowed" : "pointer", opacity: alreadyPaidInscriptionHistory ? 0.6 : 1 }}>
+                  <input 
+                    type="checkbox" 
+                    checked={alreadyPaidInscriptionHistory ? false : payInscription} 
+                    disabled={alreadyPaidInscriptionHistory}
+                    onChange={(e) => setPayInscription(e.target.checked)} 
+                  />
+                  <span>
+                    Frais d'inscription / réinscription (+5 000 CFA) 
+                    {alreadyPaidInscriptionHistory && <strong style={{ color: "#16a34a", marginLeft: "6px" }}>✓ (Déjà payé)</strong>}
+                  </span>
                 </label>
-                <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
-                  <input type="checkbox" checked={payPaperRame} onChange={(e) => setPayPaperRame(e.target.checked)} />
-                  <span>Rame de papier (+3 500 CFA)</span>
+
+                <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: alreadyPaidRameHistory ? "not-allowed" : "pointer", opacity: alreadyPaidRameHistory ? 0.6 : 1 }}>
+                  <input 
+                    type="checkbox" 
+                    checked={alreadyPaidRameHistory ? false : payPaperRame} 
+                    disabled={alreadyPaidRameHistory}
+                    onChange={(e) => setPayPaperRame(e.target.checked)} 
+                  />
+                  <span>
+                    Rame de papier (+3 500 CFA)
+                    {alreadyPaidRameHistory && <strong style={{ color: "#16a34a", marginLeft: "6px" }}>✓ (Déjà payé)</strong>}
+                  </span>
                 </label>
+
                 <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", background: "#fef3c7", padding: "6px", borderRadius: "6px", border: "1px solid #fde68a" }}>
                   <input type="checkbox" checked={payDortoir} onChange={(e) => setPayDortoir(e.target.checked)} />
                   <span><strong>Option Dortoir / Internat (+25 000 CFA)</strong> — <em>Paiement indépendant (non inclus dans le total scolarité)</em></span>
@@ -1413,7 +1454,6 @@ export default function Payments() {
 
             <div style={{ background: "#fff", padding: "6px 10px", borderRadius: "6px", border: "1px solid #cbd5e1", marginBottom: "12px", fontSize: "10.5px" }}>
               {selectedReceipt.notes && selectedReceipt.notes.includes("Paiement Dortoir Indépendant") ? (
-                /* AFFICHAGE DU REÇU DORTOIR SIMPLIFIÉ */
                 <>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "3px" }}>
                     <span>Montant du dortoir :</span>
@@ -1434,7 +1474,6 @@ export default function Payments() {
                   </div>
                 </>
               ) : (
-                /* AFFICHAGE DU REÇU SCOLARITÉ COMPLET (MODÈLE N° 16) */
                 <>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "3px" }}>
                     <span>Total Scolarité Exigible :</span>
@@ -1483,7 +1522,7 @@ export default function Payments() {
                 <Download size={16} /> Télécharger PDF
               </button>
               <button onClick={() => window.print()} style={{ padding: "6px 14px", borderRadius: "6px", border: "none", background: "#2563eb", color: "white", fontWeight: "600", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "6px" }}>
-                <Printer size={16} /> Imprimer Reçu
+                <Printer size5={16} /> Imprimer Reçu
               </button>
             </div>
           </div>
