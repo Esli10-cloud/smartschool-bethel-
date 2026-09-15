@@ -39,7 +39,7 @@ const SCHOOL_CONFIG = {
 const EXTRA_FEES = {
   INSCRIPTION_FEE: 5000,
   PAPER_RAME_FEE: 3500,
-  DORTOIR_FEE: 25000,
+  DORTOIR_FEE: 35000,
 };
 
 const formatNomPrenom = (nom = "", prenom = "") => {
