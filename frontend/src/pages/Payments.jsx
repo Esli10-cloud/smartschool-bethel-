@@ -299,7 +299,7 @@ export default function Payments() {
     }
 
     const extraDetails = [];
-    if (payDortoir) extraDetails.push("Paiement Dortoir Indépendant (25 000 F)");
+    if (payDortoir) extraDetails.push("Paiement Dortoir Indépendant (35 000 F)");
     if (currentUser.nom) extraDetails.push(`Agent: ${currentUser.nom}`);
 
     const detailsStr = extraDetails.length > 0 ? ` [${extraDetails.join(" | ")}]` : "";
