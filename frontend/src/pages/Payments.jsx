@@ -277,8 +277,6 @@ export default function Payments() {
     !isDortoirPayment(p) &&
     (p.academic_year ? p.academic_year === academicYear : true)
 );
-  );
-
   const alreadyPaidInscriptionHistory = activeStudentPayments.some(p => p.paye_inscription === true);
   const alreadyPaidRameHistory = activeStudentPayments.some(p => p.paye_rame === true);
 
