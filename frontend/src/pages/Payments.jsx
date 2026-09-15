@@ -41,7 +41,11 @@ const EXTRA_FEES = {
   PAPER_RAME_FEE: 3500,
   DORTOIR_FEE: 35000,
 };
-
+const isDortoirPayment = (p) =>
+  Boolean(
+    p?.notes &&
+    p.notes.includes("Paiement Dortoir Indépendant")
+  );
 const formatNomPrenom = (nom = "", prenom = "") => {
   const nomFormatted = nom.trim().toUpperCase();
   const prenomFormatted = prenom
@@ -267,9 +271,12 @@ export default function Payments() {
   
   // Vérification si déjà payé dans l'historique global pour l'affichage dynamique
   const activeStudentPayments = payments.filter(
-    (p) => String(p.student_id) === String(selectedStudentId) && 
-           !p.is_cancelled && 
-           (p.academic_year ? p.academic_year === academicYear : true)
+  (p) =>
+    String(p.student_id) === String(selectedStudentId) &&
+    !p.is_cancelled &&
+    !isDortoirPayment(p) &&
+    (p.academic_year ? p.academic_year === academicYear : true)
+);
   );
 
   const alreadyPaidInscriptionHistory = activeStudentPayments.some(p => p.paye_inscription === true);
@@ -1327,7 +1334,7 @@ export default function Payments() {
 
                 <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", background: "#fef3c7", padding: "6px", borderRadius: "6px", border: "1px solid #fde68a" }}>
                   <input type="checkbox" checked={payDortoir} onChange={(e) => setPayDortoir(e.target.checked)} />
-                  <span><strong>Option Dortoir / Internat (+25 000 CFA)</strong> — <em>Paiement indépendant (non inclus dans le total scolarité)</em></span>
+                  <span><strong>Option Dortoir / Internat (+35 000 CFA)</strong> — <em>Paiement indépendant (non inclus dans le total scolarité)</em></span>
                 </label>
               </div>
 
