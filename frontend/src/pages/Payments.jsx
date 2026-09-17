@@ -41,6 +41,12 @@ const EXTRA_FEES = {
   PAPER_RAME_FEE: 3500,
   DORTOIR_FEE: 35000,
 };
+const UNIFORM_PRICES = [
+  { id: "tee_shirt", label: "Tee-shirt", price: 2000 },
+  { id: "lacoste", label: "Lacoste", price: 2500 },
+  { id: "pagne_chemise", label: "Pagne chemise (Faso Danfani)", price: 6000 },
+  { id: "tissu", label: "Tissu (pantalon ou jupe)", price: 1500 },
+];
 const isDortoirPayment = (p) =>
   Boolean(
     p?.notes &&
@@ -105,6 +111,24 @@ export default function Payments() {
   const [payInscription, setPayInscription] = useState(true);
   const [payPaperRame, setPayPaperRame] = useState(false);
   const [payDortoir, setPayDortoir] = useState(false);
+  // Gestion indépendante des quantités pour les tenues
+  const [uniformQuantities, setUniformQuantities] = useState({
+    tee_shirt: 0,
+    lacoste: 0,
+    pagne_chemise: 0,
+    tissu: 0,
+  });
+
+  // Calcul du sous-total des tenues
+  const totalTenues = UNIFORM_PRICES.reduce((acc, item) => {
+    return acc + (uniformQuantities[item.id] || 0) * item.price;
+  }, 0);
+
+  // Fonction pour mettre à jour la quantité d'une tenue
+  const handleUniformChange = (id, value) => {
+    const qty = Math.max(0, parseInt(value, 10) || 0);
+    setUniformQuantities((prev) => ({ ...prev, [id]: qty }));
+  };
   const [paymentNote, setPaymentNote] = useState("");
 
   // Remises & bourses
@@ -305,6 +329,14 @@ export default function Payments() {
 
     const extraDetails = [];
     if (payDortoir) extraDetails.push("Paiement Dortoir Indépendant (35 000 F)");
+    const uniformSummary = UNIFORM_PRICES
+  .filter((item) => (uniformQuantities[item.id] || 0) > 0)
+  .map((item) => `${uniformQuantities[item.id]}x ${item.label}`)
+  .join(", ");
+
+if (uniformSummary) {
+  extraDetails.push(`Tenues: ${uniformSummary} (${totalTenues.toLocaleString()} CFA)`);
+}
     if (currentUser.nom) extraDetails.push(`Agent: ${currentUser.nom}`);
 
     const detailsStr = extraDetails.length > 0 ? ` [${extraDetails.join(" | ")}]` : "";
@@ -343,6 +375,7 @@ export default function Payments() {
         setPayInscription(true);
         setPayPaperRame(false);
         setPayDortoir(false);
+        setUniformQuantities({ tee_shirt: 0, lacoste: 0, pagne_chemise: 0, tissu: 0 });
         
         await recordAuditLog(
           "NOUVEAU_VERSEMENT", 
@@ -1288,7 +1321,55 @@ export default function Payments() {
                 })}
             </select>
           </div>
+{/* --- MODULE TENUES SCOLAIRES (SÉLECTION & QUANTITÉS) --- */}
+<div style={{ background: "#f8fafc", padding: "14px", borderRadius: "8px", border: "1px solid #e2e8f0", marginBottom: "16px" }}>
+  <div style={{ fontWeight: "700", color: "#1e293b", fontSize: "13px", marginBottom: "10px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+    <span>👕 Tenues Scolaires (À la carte)</span>
+    {totalTenues > 0 && (
+      <span style={{ color: "#2563eb", fontWeight: "800", fontSize: "13px" }}>
+        Sous-total tenues : {totalTenues.toLocaleString()} CFA
+      </span>
+    )}
+  </div>
 
+  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+    {UNIFORM_PRICES.map((item) => {
+      const qte = uniformQuantities[item.id] || 0;
+      const isChecked = qte > 0;
+
+      return (
+        <div key={item.id} style={{ background: "white", padding: "8px 10px", borderRadius: "6px", border: isChecked ? "1.5px solid #2563eb" : "1px solid #cbd5e1" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: "6px", cursor: "pointer", fontSize: "12px", fontWeight: "600", color: "#334155" }}>
+              <input
+                type="checkbox"
+                checked={isChecked}
+                onChange={(e) => handleUniformChange(item.id, e.target.checked ? 1 : 0)}
+              />
+              <span>{item.label}</span>
+            </label>
+            <span style={{ fontSize: "11px", color: "#64748b", fontWeight: "700" }}>
+              {item.price.toLocaleString()} F
+            </span>
+          </div>
+
+          {isChecked && (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "6px", paddingTop: "6px", borderTop: "1px dashed #e2e8f0" }}>
+              <span style={{ fontSize: "11px", color: "#475569" }}>Quantité :</span>
+              <input
+                type="number"
+                min="1"
+                value={qte}
+                onChange={(e) => handleUniformChange(item.id, e.target.value)}
+                style={{ width: "55px", padding: "2px 4px", textAlign: "center", border: "1px solid #94a3b8", borderRadius: "4px", fontSize: "12px", fontWeight: "700", color: "#1e293b" }}
+              />
+            </div>
+          )}
+        </div>
+      );
+    })}
+  </div>
+</div>
           {selectedStudent && (
             <div style={{ background: "#f8fafc", padding: "14px", borderRadius: "8px", marginBottom: "16px", border: "1px solid #e2e8f0", fontSize: "13px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px", borderBottom: "1px solid #e2e8f0", paddingBottom: "6px" }}>
