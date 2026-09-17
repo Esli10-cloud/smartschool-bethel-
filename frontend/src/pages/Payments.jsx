@@ -1390,69 +1390,7 @@ if (uniformSummary) {
               style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1" }}
             />
           </div>
-{/* --- MODULE TENUES SCOLAIRES --- */}
-          <div style={{ background: "#f8fafc", padding: "14px", borderRadius: "8px", marginTop: "12px", marginBottom: "16px", border: "1px solid #e2e8f0" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontWeight: "700", color: "#1e293b", fontSize: "13px" }}>
-                👕 Tenues Scolaires (À la carte)
-              </span>
-              {totalTenues > 0 && (
-                <span style={{ color: "#2563eb", fontWeight: "800", fontSize: "13px" }}>
-                  Tenues sous-totales : {totalTenues.toLocaleString()} CFA
-                </span>
-              )}
-            </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginTop: "8px" }}>
-              {UNIFORM_PRICES.map((item) => {
-                const quantity = uniformQuantities[item.id] || 0;
-                const isChecked = quantity > 0;
-
-                return (
-                  <div key={item.id} style={{ background: "white", padding: "8px 10px", borderRadius: "8px", border: isChecked ? "1.5px solid #2563eb" : "1px solid #cbd5e1" }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                      <label style={{ display: "flex", alignItems: "center", gap: "6px", cursor: "pointer" }}>
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={(e) => {
-                            const checked = e.target.checked;
-                            setUniformQuantities(prev => ({
-                              ...prev,
-                              [item.id]: checked ? 1 : 0
-                            }));
-                          }}
-                        />
-                        <span style={{ fontWeight: "600", fontSize: "12px", color: "#334155" }}>{item.label}</span>
-                      </label>
-                      <span style={{ fontSize: "11px", color: "#64748b", fontWeight: "700" }}>
-                        {item.price.toLocaleString()} F
-                      </span>
-                    </div>
-
-                    {isChecked && (
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "6px", paddingTop: "6px", borderTop: "1px dashed #e2e8f0" }}>
-                        <span style={{ fontSize: "11px", color: "#475569" }}>Quantité :</span>
-                        <input
-                          type="number"
-                          min="1"
-                          value={quantity}
-                          onChange={(e) => {
-                            const val = parseInt(e.target.value) || 0;
-                            setUniformQuantities(prev => ({
-                              ...prev,
-                              [item.id]: val
-                            }));
-                          }}
-                          style={{ width: "50px", padding: "2px 4px", fontSize: "12px", textAlign: "center", borderRadius: "4px", border: "1px solid #cbd5e1" }}
-                        />
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
           {selectedStudent && versementActuel > 0 && (
             <div style={{ background: "#f0fdf4", padding: "12px", borderRadius: "8px", marginBottom: "16px", border: "1px solid #bbf7d0" }}>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", color: "#166534" }}>
@@ -1578,6 +1516,69 @@ if (uniformSummary) {
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                   <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    {/* --- MODULE TENUES SCOLAIRES --- */}
+          <div style={{ background: "#f8fafc", padding: "14px", borderRadius: "8px", marginTop: "12px", marginBottom: "16px", border: "1px solid #e2e8f0" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontWeight: "700", color: "#1e293b", fontSize: "13px" }}>
+                👕 Tenues Scolaires (À la carte)
+              </span>
+              {totalTenues > 0 && (
+                <span style={{ color: "#2563eb", fontWeight: "800", fontSize: "13px" }}>
+                  Tenues sous-totales : {totalTenues.toLocaleString()} CFA
+                </span>
+              )}
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginTop: "8px" }}>
+              {UNIFORM_PRICES.map((item) => {
+                const quantity = uniformQuantities[item.id] || 0;
+                const isChecked = quantity > 0;
+
+                return (
+                  <div key={item.id} style={{ background: "white", padding: "8px 10px", borderRadius: "8px", border: isChecked ? "1.5px solid #2563eb" : "1px solid #cbd5e1" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <label style={{ display: "flex", alignItems: "center", gap: "6px", cursor: "pointer" }}>
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            const checked = e.target.checked;
+                            setUniformQuantities(prev => ({
+                              ...prev,
+                              [item.id]: checked ? 1 : 0
+                            }));
+                          }}
+                        />
+                        <span style={{ fontWeight: "600", fontSize: "12px", color: "#334155" }}>{item.label}</span>
+                      </label>
+                      <span style={{ fontSize: "11px", color: "#64748b", fontWeight: "700" }}>
+                        {item.price.toLocaleString()} F
+                      </span>
+                    </div>
+
+                    {isChecked && (
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "6px", paddingTop: "6px", borderTop: "1px dashed #e2e8f0" }}>
+                        <span style={{ fontSize: "11px", color: "#475569" }}>Quantité :</span>
+                        <input
+                          type="number"
+                          min="1"
+                          value={quantity}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value) || 0;
+                            setUniformQuantities(prev => ({
+                              ...prev,
+                              [item.id]: val
+                            }));
+                          }}
+                          style={{ width: "50px", padding: "2px 4px", fontSize: "12px", textAlign: "center", borderRadius: "4px", border: "1px solid #cbd5e1" }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
                     <span>Total Scolarité Exigible :</span>
                     <strong>{(selectedReceipt.total_exigible || 0).toLocaleString()} CFA</strong>
                   </div>
