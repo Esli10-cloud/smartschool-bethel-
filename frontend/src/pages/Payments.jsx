@@ -121,7 +121,8 @@ export default function Payments() {
 
   // Calcul du sous-total des tenues
   const totalTenues = UNIFORM_PRICES.reduce((acc, item) => {
-    return acc + (uniformQuantities[item.id] || 0) * item.price;
+    const qty = parseInt(uniformQuantities[item.id] || 0, 10);
+    return acc + (qty * item.price);
   }, 0);
 
   // Fonction pour mettre à jour la quantité d'une tenue
