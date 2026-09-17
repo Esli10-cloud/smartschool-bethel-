@@ -1376,7 +1376,21 @@ if (uniformSummary) {
               </div>
             </div>
           )}
-          {/* --- MODULE TENUES SCOLAIRES --- */}
+          
+
+          <div style={{ marginBottom: "16px" }}>
+            <label style={{ display: "block", fontSize: "13px", fontWeight: "600", marginBottom: "6px" }}>Montant versé aujourd'hui (CFA Entier) *</label>
+            <input
+              type="number"
+              step="1"
+              placeholder="Ex : 50000"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              required
+              style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1" }}
+            />
+          </div>
+{/* --- MODULE TENUES SCOLAIRES --- */}
           <div style={{ background: "#f8fafc", padding: "14px", borderRadius: "8px", marginTop: "12px", marginBottom: "16px", border: "1px solid #e2e8f0" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <span style={{ fontWeight: "700", color: "#1e293b", fontSize: "13px" }}>
@@ -1439,20 +1453,6 @@ if (uniformSummary) {
               })}
             </div>
           </div>
-
-          <div style={{ marginBottom: "16px" }}>
-            <label style={{ display: "block", fontSize: "13px", fontWeight: "600", marginBottom: "6px" }}>Montant versé aujourd'hui (CFA Entier) *</label>
-            <input
-              type="number"
-              step="1"
-              placeholder="Ex : 50000"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              required
-              style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1" }}
-            />
-          </div>
-
           {selectedStudent && versementActuel > 0 && (
             <div style={{ background: "#f0fdf4", padding: "12px", borderRadius: "8px", marginBottom: "16px", border: "1px solid #bbf7d0" }}>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", color: "#166534" }}>
