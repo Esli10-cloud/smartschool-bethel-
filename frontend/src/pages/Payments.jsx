@@ -1446,35 +1446,42 @@ if (uniformSummary) {
             </div>
           )}
 {/* Affichage des tranches d'échéance */}
-{fDetails?.installments && (
-  <div style={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '12px', marginTop: '12px', marginBottom: '12px', fontSize: '12px' }}>
-    <p style={{ fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Échéancier de règlement :</p>
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', textAlign: 'center' }}>
-      
-      {/* 1er Versement */}
-      <div style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: (totalDejaPaye || 0) >= fDetails.installments.v1 ? '#dcfce7' : '#ffffff' }}>
-        <span style={{ display: 'block', fontWeight: 'bold' }}>1ᵉʳ Versement</span>
-        <span style={{ display: 'block', color: '#64748b', fontSize: '10px' }}>(Inscription)</span>
-        <span style={{ fontWeight: '600' }}>{fDetails.installments.v1?.toLocaleString()} F</span>
-      </div>
+{(() => {
+  const activeDetails = typeof fDetails !== 'undefined' ? fDetails : (typeof details !== 'undefined' ? details : null);
+  const activePaye = typeof totalDejaPaye !== 'undefined' ? totalDejaPaye : (typeof totalPaye !== 'undefined' ? totalPaye : 0);
+  
+  if (!activeDetails?.installments) return null;
 
-      {/* 2ème Versement */}
-      <div style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: (totalDejaPaye || 0) >= (fDetails.installments.v1 + fDetails.installments.v2) ? '#dcfce7' : '#ffffff' }}>
-        <span style={{ display: 'block', fontWeight: 'bold' }}>2ᵉ Versement</span>
-        <span style={{ display: 'block', color: '#64748b', fontSize: '10px' }}>(Fin Nov)</span>
-        <span style={{ fontWeight: '600' }}>{fDetails.installments.v2?.toLocaleString()} F</span>
-      </div>
+  return (
+    <div style={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '12px', marginTop: '12px', marginBottom: '12px', fontSize: '12px' }}>
+      <p style={{ fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Échéancier de règlement :</p>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', textAlign: 'center' }}>
+        
+        {/* 1er Versement */}
+        <div style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: activePaye >= activeDetails.installments.v1 ? '#dcfce7' : '#ffffff' }}>
+          <span style={{ display: 'block', fontWeight: 'bold' }}>1ᵉʳ Versement</span>
+          <span style={{ display: 'block', color: '#64748b', fontSize: '10px' }}>(Inscription)</span>
+          <span style={{ fontWeight: '600' }}>{activeDetails.installments.v1?.toLocaleString()} F</span>
+        </div>
 
-      {/* 3ème Versement */}
-      <div style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: (totalDejaPaye || 0) >= (fDetails.baseTotal || fDetails.total) ? '#dcfce7' : '#ffffff' }}>
-        <span style={{ display: 'block', fontWeight: 'bold' }}>3ᵉ Versement</span>
-        <span style={{ display: 'block', color: '#64748b', fontSize: '10px' }}>(Fin Déc)</span>
-        <span style={{ fontWeight: '600' }}>{fDetails.installments.v3?.toLocaleString()} F</span>
-      </div>
+        {/* 2ème Versement */}
+        <div style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: activePaye >= (activeDetails.installments.v1 + activeDetails.installments.v2) ? '#dcfce7' : '#ffffff' }}>
+          <span style={{ display: 'block', fontWeight: 'bold' }}>2ᵉ Versement</span>
+          <span style={{ display: 'block', color: '#64748b', fontSize: '10px' }}>(Fin Nov)</span>
+          <span style={{ fontWeight: '600' }}>{activeDetails.installments.v2?.toLocaleString()} F</span>
+        </div>
 
+        {/* 3ème Versement */}
+        <div style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: activePaye >= (activeDetails.baseTotal || activeDetails.total) ? '#dcfce7' : '#ffffff' }}>
+          <span style={{ display: 'block', fontWeight: 'bold' }}>3ᵉ Versement</span>
+          <span style={{ display: 'block', color: '#64748b', fontSize: '10px' }}>(Fin Déc)</span>
+          <span style={{ fontWeight: '600' }}>{activeDetails.installments.v3?.toLocaleString()} F</span>
+        </div>
+
+      </div>
     </div>
-  </div>
-)}
+  );
+})()}
           <div style={{ marginBottom: "16px" }}>
             <label style={{ display: "block", fontSize: "13px", fontWeight: "600", marginBottom: "6px" }}>Montant versé aujourd'hui (CFA Entier) *</label>
             <input
