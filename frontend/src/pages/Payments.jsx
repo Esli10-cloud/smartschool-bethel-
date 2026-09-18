@@ -1445,7 +1445,7 @@ if (uniformSummary) {
               </div>
             </div>
           )}
-{/* Échéancier visuel des 3 tranches */}
+{/* Échéancier visuel des 3 tranches (Cliquables pour remplir le montant) */}
 {(() => {
   if (!selectedStudentId) return null;
 
@@ -1461,32 +1461,77 @@ if (uniformSummary) {
   const v3 = feeInfo.installments?.v3 || Math.round(totalScolarite * 0.25);
   const dejaPaye = typeof totalDejaPaye !== 'undefined' ? totalDejaPaye : 0;
 
+  // Fonction au clic pour remplir automatiquement le montant versé
+  const handleSelectInstallment = (amount) => {
+    if (typeof setAmount === 'function') {
+      setAmount(amount);
+    } else if (typeof setFormData === 'function') {
+      setFormData(prev => ({ ...prev, amount: amount }));
+    }
+  };
+
   return (
     <div style={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '12px', marginTop: '12px', marginBottom: '12px', fontSize: '12px' }}>
       <p style={{ fontWeight: '600', color: '#374151', marginBottom: '8px' }}>
-        Échéancier de règlement ({currentStudent.classe || currentStudent.class_name || ''}) :
+        Échéancier de règlement ({currentStudent.classe || currentStudent.class_name || ''}) — <span style={{ fontWeight: 'normal', fontStyle: 'italic', color: '#2563eb' }}>Cliquez sur une tranche pour remplir le montant</span> :
       </p>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', textAlign: 'center' }}>
         
         {/* 1er Versement */}
-        <div style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: dejaPaye >= v1 ? '#dcfce7' : '#ffffff' }}>
+        <div 
+          onClick={() => handleSelectInstallment(v1)}
+          style={{ 
+            padding: '8px', 
+            borderRadius: '6px', 
+            border: '1px solid #cbd5e1', 
+            backgroundColor: dejaPaye >= v1 ? '#dcfce7' : '#ffffff',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+          }}
+          title="Cliquer pour verser ce montant"
+        >
           <span style={{ display: 'block', fontWeight: 'bold' }}>1er Versement</span>
           <span style={{ display: 'block', color: '#64748b', fontSize: '10px' }}>(Inscription)</span>
-          <span style={{ fontWeight: '600' }}>{v1.toLocaleString()} F</span>
+          <span style={{ fontWeight: '600', color: '#1e40af' }}>{v1.toLocaleString()} F</span>
         </div>
 
         {/* 2ème Versement */}
-        <div style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: dejaPaye >= (v1 + v2) ? '#dcfce7' : '#ffffff' }}>
+        <div 
+          onClick={() => handleSelectInstallment(v2)}
+          style={{ 
+            padding: '8px', 
+            borderRadius: '6px', 
+            border: '1px solid #cbd5e1', 
+            backgroundColor: dejaPaye >= (v1 + v2) ? '#dcfce7' : '#ffffff',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+          }}
+          title="Cliquer pour verser ce montant"
+        >
           <span style={{ display: 'block', fontWeight: 'bold' }}>2e Versement</span>
           <span style={{ display: 'block', color: '#64748b', fontSize: '10px' }}>(Fin Nov)</span>
-          <span style={{ fontWeight: '600' }}>{v2.toLocaleString()} F</span>
+          <span style={{ fontWeight: '600', color: '#1e40af' }}>{v2.toLocaleString()} F</span>
         </div>
 
         {/* 3ème Versement */}
-        <div style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: dejaPaye >= totalScolarite ? '#dcfce7' : '#ffffff' }}>
+        <div 
+          onClick={() => handleSelectInstallment(v3)}
+          style={{ 
+            padding: '8px', 
+            borderRadius: '6px', 
+            border: '1px solid #cbd5e1', 
+            backgroundColor: dejaPaye >= totalScolarite ? '#dcfce7' : '#ffffff',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+          }}
+          title="Cliquer pour verser ce montant"
+        >
           <span style={{ display: 'block', fontWeight: 'bold' }}>3ème Versement</span>
           <span style={{ display: 'block', color: '#64748b', fontSize: '10px' }}>(Fin Déc)</span>
-          <span style={{ fontWeight: '600' }}>{v3.toLocaleString()} F</span>
+          <span style={{ fontWeight: '600', color: '#1e40af' }}>{v3.toLocaleString()} F</span>
         </div>
 
       </div>
