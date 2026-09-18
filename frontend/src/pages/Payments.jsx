@@ -1445,16 +1445,13 @@ if (uniformSummary) {
               </div>
             </div>
           )}
-{/* Échéancier visuel des 3 tranches (affiché uniquement si un élève est sélectionné) */}
+{/* Échéancier visuel des 3 tranches */}
 {(() => {
-  // 1. Si aucun élève n'est sélectionné dans le menu déroulant, on n'affiche rien
   if (!selectedStudentId) return null;
 
-  // 2. On recherche l'élève sélectionné
   const currentStudent = (students || []).find(s => String(s.id) === String(selectedStudentId));
   if (!currentStudent) return null;
 
-  // 3. On calcule ses frais exacts selon sa classe
   const feeInfo = getFeeDetails(currentStudent);
   if (!feeInfo) return null;
 
@@ -1473,24 +1470,24 @@ if (uniformSummary) {
         
         {/* 1er Versement */}
         <div style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: dejaPaye >= v1 ? '#dcfce7' : '#ffffff' }}>
-          <span style={{ display: 'block', fontWeight: 'bold' }}>1ᵉʳ Versement</span>
+          <span style={{ display: 'block', fontWeight: 'bold' }}>1er Versement</span>
           <span style={{ display: 'block', color: '#64748b', fontSize: '10px' }}>(Inscription)</span>
           <span style={{ fontWeight: '600' }}>{v1.toLocaleString()} F</span>
         </div>
 
         {/* 2ème Versement */}
         <div style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: dejaPaye >= (v1 + v2) ? '#dcfce7' : '#ffffff' }}>
-          <span style={{ display: 'block', fontWeight: 'bold' }}>2ᵉ Versement</span>
+          <span style={{ display: 'block', fontWeight: 'bold' }}>2e Versement</span>
           <span style={{ display: 'block', color: '#64748b', fontSize: '10px' }}>(Fin Nov)</span>
           <span style={{ fontWeight: '600' }}>{v2.toLocaleString()} F</span>
         </div>
 
         {/* 3ème Versement */}
-<div style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: dejaPaye >= totalScolarite ? '#dcfce7' : '#ffffff' }}>
-  <span style={{ display: 'block', fontWeight: 'bold' }}>3ᵉ Versement</span>
-  <span style={{ display: 'block', color: '#64748b', fontSize: '10px' }}>(Fin Déc)</span>
-  <span style={{ fontWeight: '600' }}>{v3.toLocaleString()} F</span>
-</div>
+        <div style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: dejaPaye >= totalScolarite ? '#dcfce7' : '#ffffff' }}>
+          <span style={{ display: 'block', fontWeight: 'bold' }}>3ème Versement</span>
+          <span style={{ display: 'block', color: '#64748b', fontSize: '10px' }}>(Fin Déc)</span>
+          <span style={{ fontWeight: '600' }}>{v3.toLocaleString()} F</span>
+        </div>
 
       </div>
     </div>
