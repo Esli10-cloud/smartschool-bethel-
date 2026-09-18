@@ -323,10 +323,15 @@ export default function Payments() {
     0
   );
 
-  const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
-  const versementActuel = parseInt(amount, 10) || 0;
-  const nouveauCumul = totalDejaPaye + versementActuel;
-  const resteAPayer = Math.max(0, totalAttendu - nouveauCumul);
+ const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
+const versementActuel = parseInt(amount, 10) || 0;
+
+// Si le dortoir est coché, la déduction pour la scolarité est de 0 F
+const isDortoir = isDortoirChecked || selectedFeeOptions?.dortoir || false; // Adaptez selon le nom de votre variable d'état du dortoir
+const deductionScolarite = isDortoir ? 0 : versementActuel;
+
+const nouveauCumul = totalDejaPaye + deductionScolarite;
+const resteAPayer = Math.max(0, totalAttendu - nouveauCumul);
 
   const handleAddPayment = async (e) => {
     e.preventDefault();
