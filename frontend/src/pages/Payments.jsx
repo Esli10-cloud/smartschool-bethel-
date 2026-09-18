@@ -327,7 +327,7 @@ export default function Payments() {
 const versementActuel = parseInt(amount, 10) || 0;
 
 // Si le dortoir est coché, la déduction pour la scolarité est de 0 F
-const isDortoir = isDortoirChecked || selectedFeeOptions?.dortoir || false; // Adaptez selon le nom de votre variable d'état du dortoir
+const isDortoir = payDortoir || selectedFeeOptions?.dortoir || false; // Adaptez selon le nom de votre variable d'état du dortoir
 const deductionScolarite = isDortoir ? 0 : versementActuel;
 
 const nouveauCumul = totalDejaPaye + deductionScolarite;
