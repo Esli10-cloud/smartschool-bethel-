@@ -1486,11 +1486,11 @@ if (uniformSummary) {
         </div>
 
         {/* 3ème Versement */}
-        <div style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: dejaPaye >= totalScolarite ? '#dcfce7' : '#ffffff' }}>
-          <span style={{ display: 'block', fontWeight: 'bold' }}>3ᵉ Versement</span>
-          <span style={{ display: 'block', color: '#64748b', fontSize: '10px' }}>(Fin Déc)</span>
-          <span style={{ fontWeight: '600' }}>{v3.toLocaleString()} F</span>
-        </div>
+<div style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: dejaPaye >= totalScolarite ? '#dcfce7' : '#ffffff' }}>
+  <span style={{ display: 'block', fontWeight: 'bold' }}>3ᵉ Versement</span>
+  <span style={{ display: 'block', color: '#64748b', fontSize: '10px' }}>(Fin Déc)</span>
+  <span style={{ fontWeight: '600' }}>{v3.toLocaleString()} F</span>
+</div>
 
       </div>
     </div>
