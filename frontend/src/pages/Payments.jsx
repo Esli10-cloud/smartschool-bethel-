@@ -1445,37 +1445,38 @@ if (uniformSummary) {
               </div>
             </div>
           )}
-{/* Affichage forcé des 3 tranches d'échéance */}
+{/* Affichage officiel des 3 tranches d'échéance */}
 {(() => {
-  // On récupère l'objet élève par son ID ou on prend le premier si besoin pour tester
   const currentStudent = (students || []).find(s => String(s.id) === String(selectedStudentId)) || (students && students[0]);
-  const feeInfo = currentStudent ? getFeeDetails(currentStudent) : { baseTotal: 100000, installments: { v1: 40000, v2: 30000, v3: 30000 } };
+  const feeInfo = currentStudent ? getFeeDetails(currentStudent) : null;
   const dejaPaye = typeof totalDejaPaye !== 'undefined' ? totalDejaPaye : 0;
 
+  if (!feeInfo?.installments) return null;
+
   return (
-    <div style={{ backgroundColor: '#eff6ff', border: '2px solid #3b82f6', borderRadius: '8px', padding: '12px', marginTop: '12px', marginBottom: '12px', fontSize: '12px' }}>
-      <p style={{ fontWeight: '700', color: '#1e40af', marginBottom: '8px' }}>Échéancier officiel des 3 tranches :</p>
+    <div style={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '12px', marginTop: '12px', marginBottom: '12px', fontSize: '12px' }}>
+      <p style={{ fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Échéancier de règlement :</p>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', textAlign: 'center' }}>
         
         {/* 1er Versement */}
-        <div style={{ padding: '8px', borderRadius: '6px', border: '1px solid #93c5fd', backgroundColor: dejaPaye >= (feeInfo.installments?.v1 || 40000) ? '#dcfce7' : '#ffffff' }}>
+        <div style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: dejaPaye >= feeInfo.installments.v1 ? '#dcfce7' : '#ffffff' }}>
           <span style={{ display: 'block', fontWeight: 'bold' }}>1ᵉʳ Versement</span>
           <span style={{ display: 'block', color: '#64748b', fontSize: '10px' }}>(Inscription)</span>
-          <span style={{ fontWeight: '600' }}>{(feeInfo.installments?.v1 || 40000).toLocaleString()} F</span>
+          <span style={{ fontWeight: '600' }}>{feeInfo.installments.v1?.toLocaleString()} F</span>
         </div>
 
         {/* 2ème Versement */}
-        <div style={{ padding: '8px', borderRadius: '6px', border: '1px solid #93c5fd', backgroundColor: dejaPaye >= ((feeInfo.installments?.v1 || 40000) + (feeInfo.installments?.v2 || 30000)) ? '#dcfce7' : '#ffffff' }}>
+        <div style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: dejaPaye >= (feeInfo.installments.v1 + feeInfo.installments.v2) ? '#dcfce7' : '#ffffff' }}>
           <span style={{ display: 'block', fontWeight: 'bold' }}>2ᵉ Versement</span>
           <span style={{ display: 'block', color: '#64748b', fontSize: '10px' }}>(Fin Nov)</span>
-          <span style={{ fontWeight: '600' }}>{(feeInfo.installments?.v2 || 30000).toLocaleString()} F</span>
+          <span style={{ fontWeight: '600' }}>{feeInfo.installments.v2?.toLocaleString()} F</span>
         </div>
 
         {/* 3ème Versement */}
-        <div style={{ padding: '8px', borderRadius: '6px', border: '1px solid #93c5fd', backgroundColor: dejaPaye >= (feeInfo.baseTotal || 100000) ? '#dcfce7' : '#ffffff' }}>
+        <div style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: dejaPaye >= feeInfo.baseTotal ? '#dcfce7' : '#ffffff' }}>
           <span style={{ display: 'block', fontWeight: 'bold' }}>3ᵉ Versement</span>
           <span style={{ display: 'block', color: '#64748b', fontSize: '10px' }}>(Fin Déc)</span>
-          <span style={{ fontWeight: '600' }}>{(feeInfo.installments?.v3 || 30000).toLocaleString()} F</span>
+          <span style={{ fontWeight: '600' }}>{feeInfo.installments.v3?.toLocaleString()} F</span>
         </div>
 
       </div>
