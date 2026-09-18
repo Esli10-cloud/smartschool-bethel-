@@ -269,7 +269,15 @@ export default function Payments() {
         tr1 = 50000; tr2 = 25000; tr3 = 25000; baseTotal = 100000;
       }
     } else {
-      if (cls.includes("TF2") || cls.includes("F2") || cls.includes("F3")) { 
+      // Correction spécifique pour le Second Cycle Général : 2nd AC, 1ère A/D et Terminale A/D (100 000 F)
+      if (
+        cls.includes("2ND AC") || cls.includes("2NDE AC") ||
+        cls.includes("1ERE A") || cls.includes("1ERE D") || cls.includes("1ÈRE A") || cls.includes("1ÈRE D") ||
+        cls.includes("TLE A")  || cls.includes("TLE D")  || cls.includes("TERMINALE A") || cls.includes("TERMINALE D")
+      ) {
+        tr1 = 50000; tr2 = 25000; tr3 = 25000; baseTotal = 100000;
+      }
+      else if (cls.includes("TF2") || cls.includes("F2") || cls.includes("F3")) { 
         tr1 = 100000; tr2 = 35000; tr3 = 30000; baseTotal = 165000; 
       }
       else if (cls.includes("CAP") || cls.includes("AP")) { tr1 = 100000; tr2 = 25000; tr3 = 25000; baseTotal = 150000; }
@@ -290,7 +298,7 @@ export default function Payments() {
     const finalTotal = Math.max(0, baseTotal - reduction);
 
     return { tr1, tr2, tr3, total: finalTotal, baseTotal, reduction };
-  };
+};
 
   const fees = selectedStudent ? getFeeDetails(selectedStudent) : { tr1: 0, tr2: 0, tr3: 0, total: 0, baseTotal: 0, reduction: 0 };
   
