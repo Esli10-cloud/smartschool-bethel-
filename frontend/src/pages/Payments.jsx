@@ -317,8 +317,7 @@ export default function Payments() {
   const totalRame = (payPaperRame && !alreadyPaidRameHistory) ? EXTRA_FEES.PAPER_RAME_FEE : 0;
   
   // LE TOTAL ATTENDU GLOBAL INCLUT TOUJOURS LA SCOLARITÉ + FRAIS FIXES ANNUELS DE BASE
-  const totalAttendu = fees.total + EXTRA_FEES.INSCRIPTION_FEE + EXTRA_FEES.PAPER_RAME_FEE;
-
+  const totalAttendu = fees.total + totalInscription + totalRame;
   const totalDejaPaye = activeStudentPayments.reduce(
     (sum, p) => sum + parseInt(p.amount || p.montant || 0, 10),
     0
