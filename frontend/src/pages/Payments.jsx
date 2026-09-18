@@ -602,7 +602,7 @@ if (uniformSummary) {
     const stPays = payments.filter(p => String(p.student_id) === String(st.id) && !p.is_cancelled);
     const totalPaye = stPays.reduce((sum, p) => sum + parseInt(p.amount || p.montant || 0, 10), 0);
     const fDetails = getFeeDetails(st);
-    const totalExigibleSt = fDetails.total + EXTRA_FEES.INSCRIPTION_FEE + EXTRA_FEES.PAPER_RAME_FEE;
+    const totalExigibleSt = fDetails.total + EXTRA_FEES.INSCRIPTION_FEE;
     const reste = Math.max(0, totalExigibleSt - totalPaye);
     return { ...st, totalPaye, totalExigibleSt, reste };
   });
