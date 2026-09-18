@@ -45,7 +45,7 @@ export const SCHOOL_FEES_GRID = {
   "CAP 3 (Mécanique Auto)": { v1: 100000, v2: 25000, v3: 25000, total: 150000 },
   "BEP 1 (Mécanique Auto)": { v1: 100000, v2: 35000, v3: 30000, total: 165000 },
   "BEP 2 (Mécanique Auto)": { v1: 100000, v2: 35000, v3: 30000, total: 165000 },
-  "BAC-PRO (Mécanique Auto)": { v1: 100000, v2: 60000, v3: 60000, total: 220000 },
+  "BAC-PRO (Mécanique Auto)": { v1: 140000, v2: 40000, v3: 40000, total: 220000 },
 
   // ==================== COMPTABILITÉ ====================
   "BEP 1 (Comptabilité-ACC)": { v1: 50000, v2: 25000, v3: 25000, total: 100000 },
@@ -68,4 +68,27 @@ export const SCHOOL_FEES_GRID = {
 export const EXTRA_FEES = {
   INSCRIPTION_FEE: 5000, // Droits d'inscription / réinscription
   PAPER_RAME_FEE: 3500,  // Option de paiement physique ou 3500 F
+};
+
+/**
+ * Récupère les détails des frais et tranches pour un élève
+ */
+export const getFeeDetails = (student) => {
+  const className = student?.class_name || student?.classe || '';
+  const feeInfo = SCHOOL_FEES_GRID[className] || {
+    v1: 50000,
+    v2: 25000,
+    v3: 25000,
+    total: 100000,
+  };
+
+  return {
+    baseTotal: feeInfo.total,
+    installments: {
+      v1: feeInfo.v1,
+      v2: feeInfo.v2,
+      v3: feeInfo.v3,
+    },
+    totalWithInscription: feeInfo.total + EXTRA_FEES.INSCRIPTION_FEE,
+  };
 };
