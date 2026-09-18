@@ -317,20 +317,21 @@ export default function Payments() {
   const totalRame = (payPaperRame && !alreadyPaidRameHistory) ? EXTRA_FEES.PAPER_RAME_FEE : 0;
   
   // LE TOTAL ATTENDU GLOBAL INCLUT TOUJOURS LA SCOLARITÉ + FRAIS FIXES ANNUELS DE BASE
-  const totalAttendu = fees.total + totalInscription + totalRame;
+const totalAttendu = fees.total + totalInscription + totalRame;
   const totalDejaPaye = activeStudentPayments.reduce(
     (sum, p) => sum + parseInt(p.amount || p.montant || 0, 10),
     0
   );
 
- const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
-const versementActuel = parseInt(amount, 10) || 0;
+  const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
+  const versementActuel = parseInt(amount, 10) || 0;
 
-// Si le dortoir est coché, la déduction pour la scolarité est de 0 F
-const isDortoir = payDortoir || false;
+  // Si le dortoir est coché, la déduction pour la scolarité est de 0 F
+  const isDortoir = payDortoir || false;
+  const deductionScolarite = isDortoir ? 0 : versementActuel;
 
-const nouveauCumul = totalDejaPaye + deductionScolarite;
-const resteAPayer = Math.max(0, totalAttendu - nouveauCumul);
+  const nouveauCumul = totalDejaPaye + deductionScolarite;
+  const resteAPayer = Math.max(0, totalAttendu - nouveauCumul);
 
   const handleAddPayment = async (e) => {
     e.preventDefault();
