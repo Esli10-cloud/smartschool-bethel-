@@ -1445,21 +1445,30 @@ if (uniformSummary) {
               </div>
             </div>
           )}
-{/* Échéancier visuel des 3 tranches */}
+{/* Échéancier visuel des 3 tranches (affiché uniquement si un élève est sélectionné) */}
 {(() => {
-  const currentStudent = (students || []).find(s => String(s.id) === String(selectedStudentId)) || (students && students[0]);
-  const feeInfo = currentStudent ? getFeeDetails(currentStudent) : null;
-  
-  // Récupération des montants réels depuis feeInfo ou calcul direct basé sur le total
-  const totalScolarite = feeInfo?.baseTotal || feeInfo?.total || 100000;
-  const v1 = feeInfo?.installments?.v1 || Math.round(totalScolarite * 0.5);
-  const v2 = feeInfo?.installments?.v2 || Math.round(totalScolarite * 0.25);
-  const v3 = feeInfo?.installments?.v3 || Math.round(totalScolarite * 0.25);
+  // 1. Si aucun élève n'est sélectionné dans le menu déroulant, on n'affiche rien
+  if (!selectedStudentId) return null;
+
+  // 2. On recherche l'élève sélectionné
+  const currentStudent = (students || []).find(s => String(s.id) === String(selectedStudentId));
+  if (!currentStudent) return null;
+
+  // 3. On calcule ses frais exacts selon sa classe
+  const feeInfo = getFeeDetails(currentStudent);
+  if (!feeInfo) return null;
+
+  const totalScolarite = feeInfo.baseTotal || feeInfo.total || 0;
+  const v1 = feeInfo.installments?.v1 || Math.round(totalScolarite * 0.5);
+  const v2 = feeInfo.installments?.v2 || Math.round(totalScolarite * 0.25);
+  const v3 = feeInfo.installments?.v3 || Math.round(totalScolarite * 0.25);
   const dejaPaye = typeof totalDejaPaye !== 'undefined' ? totalDejaPaye : 0;
 
   return (
     <div style={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '12px', marginTop: '12px', marginBottom: '12px', fontSize: '12px' }}>
-      <p style={{ fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Échéancier de règlement :</p>
+      <p style={{ fontWeight: '600', color: '#374151', marginBottom: '8px' }}>
+        Échéancier de règlement ({currentStudent.classe || currentStudent.class_name || ''}) :
+      </p>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', textAlign: 'center' }}>
         
         {/* 1er Versement */}
