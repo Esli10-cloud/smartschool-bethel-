@@ -1447,8 +1447,8 @@ if (uniformSummary) {
           )}
 {/* Affichage des 3 tranches d'échéance */}
 {(() => {
-  const student = selectedStudent || (students && students.find(s => s.id === selectedStudentId));
-  const feeInfo = student ? getFeeDetails(student) : null;
+  const currentStudent = students?.find(s => String(s.id) === String(selectedStudentId));
+  const feeInfo = currentStudent ? getFeeDetails(currentStudent) : null;
   const dejaPaye = totalDejaPaye || 0;
 
   if (!feeInfo?.installments) return null;
