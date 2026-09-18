@@ -1445,7 +1445,7 @@ if (uniformSummary) {
               </div>
             </div>
           )}
-{/* Échéancier visuel des 3 tranches (Cliquables pour remplir le montant) */}
+{/* Échéancier visuel des 3 tranches */}
 {(() => {
   if (!selectedStudentId) return null;
 
@@ -1461,8 +1461,14 @@ if (uniformSummary) {
   const v3 = feeInfo.installments?.v3 || Math.round(totalScolarite * 0.25);
   const dejaPaye = typeof totalDejaPaye !== 'undefined' ? totalDejaPaye : 0;
 
-  // Fonction au clic pour remplir automatiquement le montant versé
-  const handleSelectInstallment = (amount) => {
+  // Vérification du statut de chaque tranche
+  const isV1Done = dejaPaye >= v1;
+  const isV2Done = dejaPaye >= (v1 + v2);
+  const isV3Done = dejaPaye >= totalScolarite;
+
+  const handleSelectInstallment = (amount, isDone) => {
+    if (isDone) return; // Empêche l'action si déjà payé
+
     if (typeof setAmount === 'function') {
       setAmount(amount);
     } else if (typeof setFormData === 'function') {
@@ -1473,65 +1479,74 @@ if (uniformSummary) {
   return (
     <div style={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '12px', marginTop: '12px', marginBottom: '12px', fontSize: '12px' }}>
       <p style={{ fontWeight: '600', color: '#374151', marginBottom: '8px' }}>
-        Échéancier de règlement ({currentStudent.classe || currentStudent.class_name || ''}) — <span style={{ fontWeight: 'normal', fontStyle: 'italic', color: '#2563eb' }}>Cliquez sur une tranche pour remplir le montant</span> :
+        Échéancier de règlement ({currentStudent.classe || currentStudent.class_name || ''}) — <span style={{ fontWeight: 'normal', fontStyle: 'italic', color: '#2563eb' }}>Cliquez sur une tranche à payer</span> :
       </p>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', textAlign: 'center' }}>
         
         {/* 1er Versement */}
         <div 
-          onClick={() => handleSelectInstallment(v1)}
+          onClick={() => handleSelectInstallment(v1, isV1Done)}
           style={{ 
             padding: '8px', 
             borderRadius: '6px', 
             border: '1px solid #cbd5e1', 
-            backgroundColor: dejaPaye >= v1 ? '#dcfce7' : '#ffffff',
-            cursor: 'pointer',
+            backgroundColor: isV1Done ? '#dcfce7' : '#ffffff',
+            cursor: isV1Done ? 'not-allowed' : 'pointer',
+            opacity: isV1Done ? 0.85 : 1,
             transition: 'all 0.2s',
             boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
           }}
-          title="Cliquer pour verser ce montant"
+          title={isV1Done ? "Tranche déjà réglée" : "Cliquer pour verser ce montant"}
         >
           <span style={{ display: 'block', fontWeight: 'bold' }}>1er Versement</span>
-          <span style={{ display: 'block', color: '#64748b', fontSize: '10px' }}>(Inscription)</span>
-          <span style={{ fontWeight: '600', color: '#1e40af' }}>{v1.toLocaleString()} F</span>
+          <span style={{ display: 'block', color: '#64748b', fontSize: '10px' }}>
+            {isV1Done ? '✓ Payé' : '(Inscription)'}
+          </span>
+          <span style={{ fontWeight: '600', color: isV1Done ? '#166534' : '#1e40af' }}>{v1.toLocaleString()} F</span>
         </div>
 
         {/* 2ème Versement */}
         <div 
-          onClick={() => handleSelectInstallment(v2)}
+          onClick={() => handleSelectInstallment(v2, isV2Done)}
           style={{ 
             padding: '8px', 
             borderRadius: '6px', 
             border: '1px solid #cbd5e1', 
-            backgroundColor: dejaPaye >= (v1 + v2) ? '#dcfce7' : '#ffffff',
-            cursor: 'pointer',
+            backgroundColor: isV2Done ? '#dcfce7' : '#ffffff',
+            cursor: isV2Done ? 'not-allowed' : 'pointer',
+            opacity: isV2Done ? 0.85 : 1,
             transition: 'all 0.2s',
             boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
           }}
-          title="Cliquer pour verser ce montant"
+          title={isV2Done ? "Tranche déjà réglée" : "Cliquer pour verser ce montant"}
         >
           <span style={{ display: 'block', fontWeight: 'bold' }}>2e Versement</span>
-          <span style={{ display: 'block', color: '#64748b', fontSize: '10px' }}>(Fin Nov)</span>
-          <span style={{ fontWeight: '600', color: '#1e40af' }}>{v2.toLocaleString()} F</span>
+          <span style={{ display: 'block', color: '#64748b', fontSize: '10px' }}>
+            {isV2Done ? '✓ Payé' : '(Fin Nov)'}
+          </span>
+          <span style={{ fontWeight: '600', color: isV2Done ? '#166534' : '#1e40af' }}>{v2.toLocaleString()} F</span>
         </div>
 
         {/* 3ème Versement */}
         <div 
-          onClick={() => handleSelectInstallment(v3)}
+          onClick={() => handleSelectInstallment(v3, isV3Done)}
           style={{ 
             padding: '8px', 
             borderRadius: '6px', 
             border: '1px solid #cbd5e1', 
-            backgroundColor: dejaPaye >= totalScolarite ? '#dcfce7' : '#ffffff',
-            cursor: 'pointer',
+            backgroundColor: isV3Done ? '#dcfce7' : '#ffffff',
+            cursor: isV3Done ? 'not-allowed' : 'pointer',
+            opacity: isV3Done ? 0.85 : 1,
             transition: 'all 0.2s',
             boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
           }}
-          title="Cliquer pour verser ce montant"
+          title={isV3Done ? "Tranche déjà réglée" : "Cliquer pour verser ce montant"}
         >
           <span style={{ display: 'block', fontWeight: 'bold' }}>3ème Versement</span>
-          <span style={{ display: 'block', color: '#64748b', fontSize: '10px' }}>(Fin Déc)</span>
-          <span style={{ fontWeight: '600', color: '#1e40af' }}>{v3.toLocaleString()} F</span>
+          <span style={{ display: 'block', color: '#64748b', fontSize: '10px' }}>
+            {isV3Done ? '✓ Payé' : '(Fin Déc)'}
+          </span>
+          <span style={{ fontWeight: '600', color: isV3Done ? '#166534' : '#1e40af' }}>{v3.toLocaleString()} F</span>
         </div>
 
       </div>
