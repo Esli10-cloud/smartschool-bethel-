@@ -217,11 +217,13 @@ export default function Payments() {
       );
 
       const alreadyPaidInscription = studentPayments.some(p => p.paye_inscription === true);
-      const alreadyPaidRame = studentPayments.some(p => p.paye_rame === true);
+const alreadyPaidRame = studentPayments.some(p => p.paye_rame === true);
+const alreadyPaidDortoirHistory = studentPayments.some(p => p.paye_dortoir === true);
 
-      // Si déjà payé, on décoche par défaut pour éviter de les compter en double
-      setPayInscription(!alreadyPaidInscription);
-      setPayPaperRame(alreadyPaidRame ? false : false); 
+// Si déjà payé, on décoche par défaut pour éviter de les compter
+setPayInscription(!alreadyPaidInscription);
+setPayPaperRame(alreadyPaidRame ? false : false);
+if (alreadyPaidDortoirHistory) setPayDortoir(false); 
     }
   }, [selectedStudentId, academicYear, payments]);
 
