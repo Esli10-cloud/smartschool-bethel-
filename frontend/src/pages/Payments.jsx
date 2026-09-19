@@ -1297,15 +1297,13 @@ if (uniformSummary) {
         </div>
       </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Enregistrer un versement">
-  <form
+  <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Enregistrer un versement" maxWidth="800px">   
+ <form
     onSubmit={handleAddPayment}
     style={{
-      maxHeight: "85vh",
+      maxHeight: "80vh",
       overflowY: "auto",
       paddingRight: "8px",
-      minWidth: "650px",
-      maxWidth: "850px",
       width: "100%"
     }}
   >
