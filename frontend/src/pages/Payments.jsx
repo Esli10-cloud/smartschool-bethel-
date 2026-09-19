@@ -1446,10 +1446,32 @@ if (uniformSummary) {
                   </span>
                 </label>
 
-                <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", background: "#fef3c7", padding: "6px", borderRadius: "6px", border: "1px solid #fde68a" }}>
-                  <input type="checkbox" checked={payDortoir} onChange={(e) => setPayDortoir(e.target.checked)} />
-                  <span><strong>Option Dortoir / Internat (+35 000 CFA)</strong> — <em>Paiement indépendant (non inclus dans le total scolarité)</em></span>
-                </label>
+               <label style={{ 
+  display: "flex", 
+  alignItems: "center", 
+  gap: "8px", 
+  cursor: alreadyPaidDortoirHistory ? "not-allowed" : "pointer", 
+  background: alreadyPaidDortoirHistory ? "#f1f5f9" : "#fef3c7", 
+  padding: "6px", 
+  borderRadius: "6px", 
+  border: alreadyPaidDortoirHistory ? "1px solid #cbd5e1" : "1px solid #fde68a",
+  opacity: alreadyPaidDortoirHistory ? 0.7 : 1
+}}>
+  <input 
+    type="checkbox" 
+    checked={alreadyPaidDortoirHistory || payDortoir} 
+    disabled={alreadyPaidDortoirHistory}
+    onChange={(e) => setPayDortoir(e.target.checked)} 
+  />
+  <span>
+    <strong>Option Dortoir / Internat (+35 000 CFA)</strong>
+    {alreadyPaidDortoirHistory ? (
+      <strong style={{ color: "#16a34a", marginLeft: "6px" }}>✓ (Déjà payé)</strong>
+    ) : (
+      <> — <em>Paiement indépendant (non inclus dans le total scolarité)</em></>
+    )}
+  </span>
+</label>
               </div>
 
               <div style={{ marginTop: "8px", paddingTop: "8px", borderTop: "1px solid #cbd5e1", display: "flex", justifyContent: "space-between", fontWeight: "800", fontSize: "14px", background: "#fef2f2", padding: "8px", borderRadius: "6px" }}>
