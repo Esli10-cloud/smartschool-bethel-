@@ -333,9 +333,16 @@ const totalAttendu = fees.total + totalInscription + totalRame;
   const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
   const versementActuel = parseInt(amount, 10) || 0;
 
-  // Si le dortoir est coché, la déduction pour la scolarité est de 0 F
-  const isDortoir = payDortoir || false;
-  const deductionScolarite = isDortoir ? 0 : versementActuel;
+  // 1. On récupère le total des tenues (ou 0 si aucune tenue cochée)
+let totalAnnexes = totalTenues || 0;
+
+// 2. On ajoute le dortoir uniquement si la case est cochée
+if (payDortoir) {
+  totalAnnexes += 35000;
+}
+
+// 3. La déduction de scolarité ne prend que ce qui dépasse les annexes
+const deductionScolarite = Math.max(0, versementActuel - totalAnnexes);
 
   const nouveauCumul = totalDejaPaye + deductionScolarite;
   const resteAPayer = Math.max(0, totalAttendu - nouveauCumul);
