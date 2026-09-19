@@ -511,11 +511,17 @@ if (uniformSummary) {
       bodyData.push(['Montant versé ce jour :', `${parseInt(p.amount || 0, 10).toLocaleString()} CFA`]);
       bodyData.push(['RESTE À PAYER (SCOLARITÉ) :', `${(p.reste_a_payer || 0).toLocaleString()} CFA`]);
     } else {
-      bodyData.push(['Total Scolarité Exigible :', `${(p.total_exigible || 0).toLocaleString()} CFA`]);
-      bodyData.push(['Montant Versé ce jour :', `${parseInt(p.amount || 0, 10).toLocaleString()} CFA`]);
-      bodyData.push(['Cumul Total Réglé :', `${(p.cumul_paye || 0).toLocaleString()} CFA`]);
-      bodyData.push(['RESTE À PAYER :', `${(p.reste_a_payer || 0).toLocaleString()} CFA`]);
+    bodyData.push(['Total Scolarité Exigible :', `${(p.total_exigible || 0).toLocaleString()} CFA`]);
+    bodyData.push(['Montant Versé ce jour :', `${parseInt(p.amount || 0, 10).toLocaleString()} CFA`]);
+    
+    // AJOUT DE CETTE CONDITION : Affiche le détail des tenues/notes si présent
+    if (p.notes) {
+      bodyData.push(['Détails / Articles :', p.notes]);
     }
+
+    bodyData.push(['Cumul Total Réglé :', `${(p.cumul_paye || 0).toLocaleString()} CFA`]);
+    bodyData.push(['RESTE À PAYER :', `${(p.reste_a_payer || 0).toLocaleString()} CFA`]);
+  }
 
     doc.autoTable({
       startY: 38,
