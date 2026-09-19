@@ -1,7 +1,7 @@
 import React from "react";
 import { X } from "lucide-react";
 
-export default function Modal({ isOpen, onClose, title, children }) {
+export default function Modal({ isOpen, onClose, title, children, maxWidth = "800px" }) {
   if (!isOpen) return null;
 
   return (
@@ -17,6 +17,7 @@ export default function Modal({ isOpen, onClose, title, children }) {
         alignItems: "center",
         justifyContent: "center",
         zIndex: 1000,
+        padding: "16px",
       }}
     >
       <div
@@ -24,9 +25,12 @@ export default function Modal({ isOpen, onClose, title, children }) {
           background: "white",
           borderRadius: "12px",
           width: "100%",
-          maxWidth: "500px",
+          maxWidth: maxWidth,
           padding: "24px",
           boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)",
+          maxHeight: "90vh",
+          display: "flex",
+          flexDirection: "column",
         }}
       >
         <div
