@@ -373,6 +373,7 @@ if (uniformSummary) {
       reste_a_payer: resteAPayer,
       paye_inscription: payInscription && !alreadyPaidInscriptionHistory,
       paye_rame: payPaperRame && !alreadyPaidRameHistory,
+      paye_dortoir: payDortoir && !alreadyPaidDortoirHistory,
       notes: finalNotes,
     };
 
