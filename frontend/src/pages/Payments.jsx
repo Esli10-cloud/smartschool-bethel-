@@ -111,6 +111,7 @@ export default function Payments() {
   const [payInscription, setPayInscription] = useState(true);
   const [payPaperRame, setPayPaperRame] = useState(false);
   const [payDortoir, setPayDortoir] = useState(false);
+  const [alreadyPaidDortoirHistory, setAlreadyPaidDortoirHistory] = useState(false);
   // Gestion indépendante des quantités pour les tenues
   const [uniformQuantities, setUniformQuantities] = useState({
     tee_shirt: 0,
@@ -209,23 +210,27 @@ export default function Payments() {
 
   // Détecter automatiquement si l'élève a déjà payé l'inscription ou la rame lors de l'ouverture ou du changement d'élève
   useEffect(() => {
-    if (selectedStudentId) {
-      const studentPayments = payments.filter(
-        (p) => String(p.student_id) === String(selectedStudentId) && 
-               !p.is_cancelled && 
-               (p.academic_year ? p.academic_year === academicYear : true)
-      );
+  if (selectedStudentId) {
+    const studentPayments = payments.filter(
+      (p) => String(p.student_id) === String(selectedStudentId) && 
+             !p.is_cancelled && 
+             (p.academic_year ? p.academic_year === academicYear : true)
+    );
 
-      const alreadyPaidInscription = studentPayments.some(p => p.paye_inscription === true);
-const alreadyPaidRame = studentPayments.some(p => p.paye_rame === true);
-const alreadyPaidDortoirHistory = studentPayments.some(p => p.paye_dortoir === true);
+    const alreadyPaidInscription = studentPayments.some(p => p.paye_inscription === true);
+    const alreadyPaidRame = studentPayments.some(p => p.paye_rame === true);
+    const hasDortoir = studentPayments.some(p => p.paye_dortoir === true);
 
-// Si déjà payé, on décoche par défaut pour éviter de les compter
-setPayInscription(!alreadyPaidInscription);
-setPayPaperRame(alreadyPaidRame ? false : false);
-if (alreadyPaidDortoirHistory) setPayDortoir(false); 
-    }
-  }, [selectedStudentId, academicYear, payments]);
+    // On met à jour le state global (déclaré plus haut avec useState)
+    setAlreadyPaidDortoirHistory(hasDortoir);
+
+    // Si déjà payé, on décoche par défaut pour éviter de les compter
+    setPayInscription(!alreadyPaidInscription);
+    setPayPaperRame(alreadyPaidRame ? false : false);
+    if (hasDortoir) setPayDortoir(false);
+  }
+}, [selectedStudentId, academicYear, payments]);
+ 
 
   const recordAuditLog = async (actionType, detailsText) => {
     try {
