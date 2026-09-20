@@ -229,6 +229,11 @@ export default function Payments() {
     return acc + (qty * item.price);
   }, 0);
 
+  // ✅ CORRECTION : selectedStudent est maintenant déclaré ICI, avant d'être utilisé
+  const selectedStudent = students.find(
+    (s) => String(s.id) === String(selectedStudentId)
+  );
+
   const examOptions = getExamOptionsByClass(selectedStudent?.classe || selectedStudent?.class_name || "");
   const totalDossiers = examOptions
     .filter((exam) => examSelections.includes(exam.id))
@@ -365,9 +370,8 @@ export default function Payments() {
     }
   };
 
-  const selectedStudent = students.find(
-    (s) => String(s.id) === String(selectedStudentId)
-  );
+  // ❌ (l'ancienne déclaration de selectedStudent qui était ici a été supprimée,
+  // elle se trouve maintenant plus haut)
 
   const checkIsAffected = (student) => student?.is_affecte_etat === true;
 
