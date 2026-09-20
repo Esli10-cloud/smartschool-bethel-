@@ -344,7 +344,7 @@ const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
   const resteAPayer = Math.max(0, totalAttendu - nouveauCumul);
 
   // 2. FONCTION DE SOUMISSION DU PAIEMENT
-  const handleAddPayment = async (e) => {
+ const handleAddPayment = async (e) => {
     e.preventDefault();
     const versementActuel = parseInt(amount, 10) || 0;
 
@@ -353,35 +353,44 @@ const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
       return;
     }
 
-    // 1. Calcul explicite du total des tenues depuis les quantités
+    // 1. Calcul forcé des tenues
     let totalTenuesCalcule = 0;
     const uniformDetailsArr = [];
 
-    UNIFORM_PRICES.forEach((item) => {
-      const qte = parseInt(uniformQuantities[item.id] || 0, 10);
-      if (qte > 0) {
-        totalTenuesCalcule += qte * item.price;
-        uniformDetailsArr.push(`${qte}x ${item.label}`);
-      }
-    });
+    if (uniformQuantities && typeof uniformQuantities === 'object') {
+      UNIFORM_PRICES.forEach((item) => {
+        const qte = parseInt(uniformQuantities[item.id] || 0, 10);
+        if (qte > 0) {
+          totalTenuesCalcule += qte * item.price;
+          uniformDetailsArr.push(`${qte}x ${item.label}`);
+        }
+      });
+    }
 
-    const montantDortoir = payDortoir ? 35000 : 0;
-    const totalAnnexes = totalTenuesCalcule + montantDortoir;
-
-    // 2. ISOLATION STRICTE :
-    // Si des annexes/tenues sont sélectionnées, seule la partie supérieure aux annexes va à la scolarité
+    // 2. Détection d'un paiement d'annexes (si des tenues sont sélectionnées OU si le bouton Dortoir est actif)
+    const totalAnnexesExplicite = totalTenuesCalcule + (payDortoir ? 35000 : 0);
+    
+    // VERROU DE SÉCURITÉ :
+    // Si l'utilisateur a sélectionné des tenues/dortoir, deductionScolarite vaut STRICTEMENT 0 CFA (sauf s'il a versé plus que le total des annexes).
     let deductionScolarite = 0;
-    if (totalAnnexes > 0) {
-      deductionScolarite = Math.max(0, versementActuel - totalAnnexes);
+
+    if (totalAnnexesExplicite > 0) {
+      deductionScolarite = Math.max(0, versementActuel - totalAnnexesExplicite);
+    } else if (payDortoir || uniformDetailsArr.length > 0) {
+      deductionScolarite = 0;
     } else {
+      // Aucun accessoire coché -> Paiement pur de scolarité
       deductionScolarite = versementActuel;
     }
 
-    // 3. Calculs financiers scolarité
-    const nouveauCumul = totalDejaPaye + deductionScolarite;
-    const resteAPayer = Math.max(0, totalAttendu - nouveauCumul);
+    // 3. Calcul du cumul scolarité figé
+    const cumulInitial = parseInt(totalDejaPaye || 0, 10);
+    const totalExigibleInt = parseInt(totalAttendu || 0, 10);
 
-    // 4. Construction des détails et notes
+    const nouveauCumul = cumulInitial + deductionScolarite;
+    const resteAPayer = Math.max(0, totalExigibleInt - nouveauCumul);
+
+    // 4. Notes et détails
     const extraDetails = [];
     if (payDortoir) extraDetails.push("Dortoir (35 000 F)");
     if (uniformDetailsArr.length > 0) {
@@ -392,21 +401,21 @@ const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
     const detailsStr = extraDetails.length > 0 ? ` [${extraDetails.join(" | ")}]` : "";
     const finalNotes = paymentNote ? `${paymentNote}${detailsStr}` : detailsStr.trim();
 
-    // 5. Objet final envoyé à la base de données
+    // 5. Envoi Supabase
     const newPaymentObj = {
       student_id: selectedStudentId,
       amount: versementActuel,
       mode: paymentMode,
       academic_year: academicYear,
       is_cancelled: false,
-      total_exigible: totalAttendu,
-      cumul_paye: nouveauCumul,      // Ne bougera PAS si deductionScolarite = 0
-      reste_a_payer: resteAPayer,    // Ne bougera PAS si deductionScolarite = 0
+      total_exigible: totalExigibleInt,
+      cumul_paye: nouveauCumul,      // SERA ÉGAL À cumulInitial SI deductionScolarite = 0
+      reste_a_payer: resteAPayer,    // NE BOUGERA PAS SI deductionScolarite = 0
       paye_inscription: payInscription && !alreadyPaidInscriptionHistory,
       paye_rame: payPaperRame && !alreadyPaidRameHistory,
       paye_dortoir: payDortoir && !alreadyPaidDortoirHistory,
       notes: finalNotes,
-    };
+    }; 
     try {
       const { data, error } = await supabase
         .from("payments")
