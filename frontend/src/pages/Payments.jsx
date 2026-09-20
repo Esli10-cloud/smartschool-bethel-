@@ -229,7 +229,7 @@ export default function Payments() {
     return acc + (qty * item.price);
   }, 0);
 
-  const examOptions = getExamOptionsForStudent(selectedStudent);
+  const examOptions = getExamOptionsByClass(selectedStudent?.classe || selectedStudent?.class_name || "");
   const totalDossiers = examOptions
     .filter((exam) => examSelections.includes(exam.id))
     .reduce((sum, exam) => sum + exam.price, 0);
