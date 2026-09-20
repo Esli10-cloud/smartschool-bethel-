@@ -333,20 +333,6 @@ const totalAttendu = fees.total + totalInscription + totalRame;
   const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
   const versementActuel = parseInt(amount, 10) || 0;
 
-  // 1. On récupère le total des tenues (ou 0 si aucune tenue cochée)
-let totalAnnexes = totalTenues || 0;
-
-// 2. On ajoute le dortoir uniquement si la case est cochée
-if (payDortoir) {
-  totalAnnexes += 35000;
-}
-
-// 3. La déduction de scolarité ne prend que ce qui dépasse les annexes
-const deductionScolarite = Math.max(0, versementActuel - totalAnnexes);
-
-  const nouveauCumul = totalDejaPaye + deductionScolarite;
-  const resteAPayer = Math.max(0, totalAttendu - nouveauCumul);
-
   const handleAddPayment = async (e) => {
     e.preventDefault();
     if (!selectedStudentId || versementActuel <= 0) {
@@ -354,21 +340,34 @@ const deductionScolarite = Math.max(0, versementActuel - totalAnnexes);
       return;
     }
 
+    // 1. Calcul dynamique des annexes et de la scolarité au moment du clic
+    let totalAnnexes = totalTenues || 0;
+    if (payDortoir) {
+      totalAnnexes += 35000;
+    }
+
+    const deductionScolarite = Math.max(0, versementActuel - totalAnnexes);
+    const nouveauCumul = totalDejaPaye + deductionScolarite;
+    const resteAPayer = Math.max(0, totalAttendu - nouveauCumul);
+
+    // 2. Construction des détails et notes
     const extraDetails = [];
     if (payDortoir) extraDetails.push("Paiement Dortoir Indépendant (35 000 F)");
+    
     const uniformSummary = UNIFORM_PRICES
-  .filter((item) => (uniformQuantities[item.id] || 0) > 0)
-  .map((item) => `${uniformQuantities[item.id]}x ${item.label}`)
-  .join(", ");
+      .filter((item) => (uniformQuantities[item.id] || 0) > 0)
+      .map((item) => `${uniformQuantities[item.id]}x ${item.label}`)
+      .join(", ");
 
-if (uniformSummary) {
-  extraDetails.push(`Tenues: ${uniformSummary} (${totalTenues.toLocaleString()} CFA)`);
-}
+    if (uniformSummary) {
+      extraDetails.push(`Tenues: ${uniformSummary} (${totalTenues.toLocaleString()} CFA)`);
+    }
     if (currentUser.nom) extraDetails.push(`Agent: ${currentUser.nom}`);
 
     const detailsStr = extraDetails.length > 0 ? ` [${extraDetails.join(" | ")}]` : "";
     const finalNotes = paymentNote ? `${paymentNote}${detailsStr}` : detailsStr.trim();
 
+    // 3. Objet de paiement prêt à envoyer
     const newPaymentObj = {
       student_id: selectedStudentId,
       amount: versementActuel,
