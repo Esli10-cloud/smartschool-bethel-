@@ -487,14 +487,24 @@ const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
     }
 
     // 2. Détection d'un paiement indépendant (tenues et/ou dortoir)
-    const selectedExamDetails = examOptions
-      .filter((exam) => examSelections.includes(exam.id))
-      .map((exam) => `${exam.label} : ${exam.price.toLocaleString()} CFA`);
+    // 1. Récupération sécurisée des options pour la classe
+const currentStudentClass = selectedStudent?.classe || selectedStudent?.class_name || "";
+const currentExamOptions = getExamOptionsByClass(currentStudentClass);
 
-    const totalDossiersCalcule = examOptions
-      .filter((exam) => examSelections.includes(exam.id))
-      .reduce((sum, exam) => sum + exam.price, 0);
+// 2. Filtrage tolérant (supporte aussi bien les ID/Textes que les Objets)
+const selectedExamObjects = currentExamOptions.filter((exam) =>
+  examSelections.some((sel) => 
+    typeof sel === "object" ? sel?.label === exam.label || sel?.id === exam.id : sel === exam.label || sel === exam.id
+  )
+);
 
+// 3. Calculs sécurisés pour le reçu et le total
+const selectedExamDetails = selectedExamObjects.map(
+  (exam) => `${exam.label} : ${(exam.price || 0).toLocaleString()} CFA`
+);
+const totalDossiersCalcule = selectedExamObjects.reduce(
+  (sum, exam) => sum + (exam.price || 0), 0
+);
     const hasIndependentAnnexSelection =
       totalTenuesCalcule > 0 || payDortoir || totalDossiersCalcule > 0;
 
@@ -1569,50 +1579,52 @@ const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
             </select>
           </div>
 {/* --- MODULE FRAIS DE DOSSIER / EXAMENS --- */}
-          {selectedStudent && examOptions.length > 0 && (
-            <div style={{ background: "#fff7ed", padding: "14px", borderRadius: "8px", marginTop: "12px", marginBottom: "16px", border: "1px solid #fed7aa" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontWeight: "700", color: "#9a3412", fontSize: "13px" }}>
-                  📁 Frais de dossier / examens
-                </span>
-                {totalDossiers > 0 && (
-                  <span style={{ color: "#c2410c", fontWeight: "800", fontSize: "13px" }}>
-                    Total : {totalDossiers.toLocaleString()} CFA
-                  </span>
-                )}
-              </div>
-              <div style={{ marginTop: "6px", fontSize: "11px", color: "#9a3412" }}>
-                Plusieurs examens peuvent être sélectionnés. Le paiement reste indépendant de la scolarité.
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginTop: "10px" }}>
-                {examOptions.map((exam) => {
-                  const checked = examSelections.includes(exam.id);
-                  return (
-                    <label key={exam.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px", background: "#ffffff", padding: "8px 10px", borderRadius: "8px", border: checked ? "1.5px solid #ea580c" : "1px solid #fdba74", cursor: "pointer" }}>
-                      <span style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: "600", color: "#7c2d12" }}>
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={(e) => {
-                            setExamSelections((prev) =>
-                              e.target.checked
-                                ? [...prev, exam.id]
-                                : prev.filter((id) => id !== exam.id)
-                            );
-                          }}
-                        />
-                        {exam.label}
-                      </span>
-                      <span style={{ fontSize: "11px", fontWeight: "700", color: "#9a3412" }}>
-                        {exam.price.toLocaleString()} F
-                      </span>
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+          {selectedStudent && getExamOptionsByClass(selectedStudent.classe || selectedStudent.class_name).length > 0 && (
+  <div style={{ background: "#fff7ed", padding: "14px", borderRadius: "8px", border: "1px solid #fed7aa", marginTop: "12px" }}>
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+      <span style={{ fontWeight: "700", color: "#9a3412", fontSize: "14px" }}>
+        📁 Frais de dossier / examens
+      </span>
+      {totalDossiers > 0 && (
+        <span style={{ color: "#c2410c", fontWeight: "800", fontSize: "13px" }}>
+          Total : {totalDossiers.toLocaleString()} CFA
+        </span>
+      )}
+    </div>
+    <div style={{ marginTop: "6px", fontSize: "11px", color: "#9a3412", marginBottom: "10px" }}>
+      Plusieurs examens peuvent être sélectionnés.
+    </div>
 
+    {/* Liste des cases à cocher sécurisée */}
+    {getExamOptionsByClass(selectedStudent.classe || selectedStudent.class_name).map((exam) => {
+      if (!exam || !exam.label) return null;
+      const isChecked = examSelections.some((item) =>
+        typeof item === "object" ? item?.label === exam.label : item === exam.label
+      );
+
+      return (
+        <label key={exam.label} style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", marginBottom: "6px", cursor: "pointer", color: "#431407" }}>
+          <input
+            type="checkbox"
+            checked={isChecked}
+            onChange={(e) => {
+              if (e.target.checked) {
+                setExamSelections((prev) => [...prev, exam.label]);
+                setAmount((prev) => (parseInt(prev || 0, 10) + exam.price).toString());
+              } else {
+                setExamSelections((prev) => prev.filter((item) =>
+                  typeof item === "object" ? item?.label !== exam.label : item !== exam.label
+                ));
+                setAmount((prev) => Math.max(0, parseInt(prev || 0, 10) - exam.price).toString());
+              }
+            }}
+          />
+          <span>{exam.label} ({(exam.price || 0).toLocaleString()} CFA)</span>
+        </label>
+      );
+    })}
+  </div>
+)}
           {/* --- MODULE TENUES SCOLAIRES --- */}
           <div style={{ background: "#f8fafc", padding: "14px", borderRadius: "8px", marginTop: "12px", marginBottom: "16px", border: "1px solid #e2e8f0" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
