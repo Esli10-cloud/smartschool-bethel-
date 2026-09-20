@@ -353,38 +353,41 @@ const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
       return;
     }
 
-    // 1. Recalcul FORCÉ du total des tenues directement depuis les quantités sélectionnées
-    const totalTenuesCalcule = UNIFORM_PRICES.reduce((sum, item) => {
-      const qte = uniformQuantities[item.id] || 0;
-      return sum + qte * item.price;
-    }, 0);
+    // 1. Re-calcul direct et explicite des tenues à partir de l'objet uniformQuantities
+    let totalTenuesCalcul = 0;
+    const uniformSummaryArr = [];
 
-    // 2. Calcul des annexes (Tenues + Dortoir)
-    const totalAnnexes = totalTenuesCalcule + (payDortoir ? 35000 : 0);
+    UNIFORM_PRICES.forEach((item) => {
+      const qte = parseInt(uniformQuantities[item.id] || 0, 10);
+      if (qte > 0) {
+        totalTenuesCalcul += qte * item.price;
+        uniformSummaryArr.push(`${qte}x ${item.label}`);
+      }
+    });
 
-    // 3. Déduction stricte : seule la différence au-delà des annexes va à la scolarité
+    const montantDortoir = payDortoir ? 35000 : 0;
+    const totalAnnexes = totalTenuesCalcul + montantDortoir;
+
+    // 2. ISOLATION STRICTE : Si le montant versé sert à payer les annexes, 
+    // seule la SOMME QUI DÉPASSE les annexes va réduire la scolarité.
     const deductionScolarite = Math.max(0, versementActuel - totalAnnexes);
+
+    // 3. Calculs financiers scolarité
     const nouveauCumul = totalDejaPaye + deductionScolarite;
     const resteAPayer = Math.max(0, totalAttendu - nouveauCumul);
 
-    // 4. Construction de la note avec le détail des tenues
+    // 4. Construction des détails/notes
     const extraDetails = [];
-    if (payDortoir) extraDetails.push("Paiement Dortoir Indépendant (35 000 F)");
-
-    const uniformSummary = UNIFORM_PRICES
-      .filter((item) => (uniformQuantities[item.id] || 0) > 0)
-      .map((item) => `${uniformQuantities[item.id]}x ${item.label}`)
-      .join(", ");
-
-    if (uniformSummary) {
-      extraDetails.push(`Tenues: ${uniformSummary} (${totalTenuesCalcule.toLocaleString()} CFA)`);
+    if (payDortoir) extraDetails.push("Paiement Dortoir (35 000 F)");
+    if (uniformSummaryArr.length > 0) {
+      extraDetails.push(`Tenues: ${uniformSummaryArr.join(", ")} (${totalTenuesCalcul.toLocaleString()} CFA)`);
     }
     if (currentUser?.nom) extraDetails.push(`Agent: ${currentUser.nom}`);
 
     const detailsStr = extraDetails.length > 0 ? ` [${extraDetails.join(" | ")}]` : "";
     const finalNotes = paymentNote ? `${paymentNote}${detailsStr}` : detailsStr.trim();
 
-    // 5. Objet de paiement prêt à être envoyé
+    // 5. Enregistrement dans Supabase
     const newPaymentObj = {
       student_id: selectedStudentId,
       amount: versementActuel,
@@ -1751,6 +1754,12 @@ const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
                       {parseInt(selectedReceipt.amount || selectedReceipt.montant || 0, 10).toLocaleString()} CFA
                     </strong>
                   </div>
+                  {/* Affichage des détails/tenues sur le reçu */}
+{selectedReceipt?.notes && (
+  <div style={{ marginTop: "6px", padding: "6px 8px", backgroundColor: "#f3f4f6", borderRadius: "4px", fontSize: "12px", color: "#374151" }}>
+    <strong>Détails :</strong> {selectedReceipt.notes}
+  </div>
+)}
                   <hr style={{ margin: "4px 0", border: "0", borderTop: "1px dashed #cbd5e1" }} />
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", fontWeight: "800" }}>
                     <span>RESTE À PAYER (SCOLARITÉ) :</span>
