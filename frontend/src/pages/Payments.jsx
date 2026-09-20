@@ -52,6 +52,18 @@ const isDortoirPayment = (p) =>
     p?.notes &&
     p.notes.includes("Paiement Dortoir Indépendant")
   );
+
+const isUniformPayment = (p) =>
+  Boolean(p?.notes && p.notes.includes("Tenues:"));
+
+const isIndependentAnnexPayment = (p) =>
+  isDortoirPayment(p) || isUniformPayment(p);
+
+const getUniformDetailsFromNotes = (notes = "") => {
+  const match = notes.match(/Tenues:\s*(.*?)\s*\(([^)]*)\)/);
+  if (!match) return [];
+  return match[1].split(",").map((item) => item.trim()).filter(Boolean);
+};
 const formatNomPrenom = (nom = "", prenom = "") => {
   const nomFormatted = nom.trim().toUpperCase();
   const prenomFormatted = prenom
@@ -314,7 +326,7 @@ export default function Payments() {
   (p) =>
     String(p.student_id) === String(selectedStudentId) &&
     !p.is_cancelled &&
-    !isDortoirPayment(p) &&
+    !isIndependentAnnexPayment(p) &&
     (p.academic_year ? p.academic_year === academicYear : true)
 );
   const alreadyPaidInscriptionHistory = activeStudentPayments.some(p => p.paye_inscription === true);
@@ -334,12 +346,10 @@ const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
   const versementActuel = parseInt(amount, 10) || 0;
 
   // 1. CALCULS POUR L'AFFICHAGE EN TEMPS RÉEL
-  let totalAnnexes = totalTenues || 0;
-  if (payDortoir) {
-    totalAnnexes += 35000;
-  }
+  const hasIndependentAnnexSelection = totalTenues > 0 || payDortoir;
 
-  const deductionScolarite = Math.max(0, versementActuel - totalAnnexes);
+  // Un paiement de tenue ou de dortoir ne doit JAMAIS toucher à la scolarité.
+  const deductionScolarite = hasIndependentAnnexSelection ? 0 : versementActuel;
   const nouveauCumul = totalDejaPaye + deductionScolarite;
   const resteAPayer = Math.max(0, totalAttendu - nouveauCumul);
 
@@ -361,27 +371,25 @@ const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
       UNIFORM_PRICES.forEach((item) => {
         const qte = parseInt(uniformQuantities[item.id] || 0, 10);
         if (qte > 0) {
-          totalTenuesCalcule += qte * item.price;
-          uniformDetailsArr.push(`${qte}x ${item.label}`);
+          const sousTotal = qte * item.price;
+          totalTenuesCalcule += sousTotal;
+          uniformDetailsArr.push(
+            `${qte}x ${item.label} : ${sousTotal.toLocaleString()} CFA`
+          );
         }
       });
     }
 
-    // 2. Détection d'un paiement d'annexes (si des tenues sont sélectionnées OU si le bouton Dortoir est actif)
-    const totalAnnexesExplicite = totalTenuesCalcule + (payDortoir ? 35000 : 0);
-    
-    // VERROU DE SÉCURITÉ :
-    // Si l'utilisateur a sélectionné des tenues/dortoir, deductionScolarite vaut STRICTEMENT 0 CFA (sauf s'il a versé plus que le total des annexes).
-    let deductionScolarite = 0;
+    // 2. Détection d'un paiement indépendant (tenues et/ou dortoir)
+    const totalAnnexesExplicite =
+      totalTenuesCalcule + (payDortoir ? EXTRA_FEES.DORTOIR_FEE : 0);
+    const hasIndependentAnnexSelection =
+      totalTenuesCalcule > 0 || payDortoir;
 
-    if (totalAnnexesExplicite > 0) {
-      deductionScolarite = Math.max(0, versementActuel - totalAnnexesExplicite);
-    } else if (payDortoir || uniformDetailsArr.length > 0) {
-      deductionScolarite = 0;
-    } else {
-      // Aucun accessoire coché -> Paiement pur de scolarité
-      deductionScolarite = versementActuel;
-    }
+    // VERROU DE SÉCURITÉ :
+    // Dès qu'une tenue ou le dortoir est sélectionné, le versement
+    // est entièrement indépendant et ne réduit JAMAIS la scolarité.
+    const deductionScolarite = hasIndependentAnnexSelection ? 0 : versementActuel;
 
     // 3. Calcul du cumul scolarité figé
     const cumulInitial = parseInt(totalDejaPaye || 0, 10);
@@ -392,9 +400,15 @@ const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
 
     // 4. Notes et détails
     const extraDetails = [];
-    if (payDortoir) extraDetails.push("Dortoir (35 000 F)");
+    if (payDortoir) {
+      extraDetails.push(
+        `Paiement Dortoir Indépendant : Dortoir (${EXTRA_FEES.DORTOIR_FEE.toLocaleString()} CFA)`
+      );
+    }
     if (uniformDetailsArr.length > 0) {
-      extraDetails.push(`Tenues: ${uniformDetailsArr.join(", ")} (${totalTenuesCalcule.toLocaleString()} CFA)`);
+      extraDetails.push(
+        `Tenues: ${uniformDetailsArr.join(", ")} (${totalTenuesCalcule.toLocaleString()} CFA)`
+      );
     }
     if (currentUser?.nom) extraDetails.push(`Agent: ${currentUser.nom}`);
 
@@ -500,7 +514,10 @@ const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
   const generatePDFReceipt = (p) => {
     const doc = new jsPDF({ unit: 'mm', format: 'a5' });
     const { nomFormatted, prenomFormatted } = formatNomPrenom(p.students?.nom, p.students?.prenom);
-    const isDortoir = p.notes && p.notes.includes("Paiement Dortoir Indépendant");
+    const isDortoir = isDortoirPayment(p);
+    const isTenue = isUniformPayment(p);
+    const isIndependentAnnex = isIndependentAnnexPayment(p);
+    const uniformDetails = getUniformDetailsFromNotes(p.notes || "");
 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12);
@@ -538,22 +555,38 @@ const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
       ['Élève :', `${nomFormatted} ${prenomFormatted}`],
     ];
 
-    if (isDortoir) {
-      bodyData.push(['Montant du dortoir :', `${parseInt(p.amount || 0, 10).toLocaleString()} CFA`]);
-      bodyData.push(['Montant versé ce jour :', `${parseInt(p.amount || 0, 10).toLocaleString()} CFA`]);
-      bodyData.push(['RESTE À PAYER (SCOLARITÉ) :', `${(p.reste_a_payer || 0).toLocaleString()} CFA`]);
-    } else {
-    bodyData.push(['Total Scolarité Exigible :', `${(p.total_exigible || 0).toLocaleString()} CFA`]);
-    bodyData.push(['Montant Versé ce jour :', `${parseInt(p.amount || 0, 10).toLocaleString()} CFA`]);
-    
-    // AJOUT DE CETTE CONDITION : Affiche le détail des tenues/notes si présent
-    if (p.notes) {
-      bodyData.push(['Détails / Articles :', p.notes]);
-    }
+    if (isIndependentAnnex) {
+      if (isDortoir) {
+        bodyData.push([
+          'Article :',
+          `Dortoir / Internat : ${EXTRA_FEES.DORTOIR_FEE.toLocaleString()} CFA`
+        ]);
+      }
 
-    bodyData.push(['Cumul Total Réglé :', `${(p.cumul_paye || 0).toLocaleString()} CFA`]);
-    bodyData.push(['RESTE À PAYER :', `${(p.reste_a_payer || 0).toLocaleString()} CFA`]);
-  }
+      if (isTenue) {
+        uniformDetails.forEach((detail) => {
+          bodyData.push(['Tenue :', detail]);
+        });
+      }
+
+      bodyData.push([
+        'Montant versé ce jour :',
+        `${parseInt(p.amount || p.montant || 0, 10).toLocaleString()} CFA`
+      ]);
+      bodyData.push([
+        'Scolarité :',
+        'Montant et cumul de scolarité inchangés'
+      ]);
+      bodyData.push([
+        'Reste à payer (scolarité) :',
+        `${(p.reste_a_payer || 0).toLocaleString()} CFA`
+      ]);
+    } else {
+      bodyData.push(['Total Scolarité Exigible :', `${(p.total_exigible || 0).toLocaleString()} CFA`]);
+      bodyData.push(['Montant Versé ce jour :', `${parseInt(p.amount || p.montant || 0, 10).toLocaleString()} CFA`]);
+      bodyData.push(['Cumul Total Réglé :', `${(p.cumul_paye || 0).toLocaleString()} CFA`]);
+      bodyData.push(['RESTE À PAYER :', `${(p.reste_a_payer || 0).toLocaleString()} CFA`]);
+    }
 
     doc.autoTable({
       startY: 38,
@@ -657,8 +690,16 @@ const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
   }));
 
   const studentsStatusMap = students.map(st => {
-    const stPays = payments.filter(p => String(p.student_id) === String(st.id) && !p.is_cancelled);
-    const totalPaye = stPays.reduce((sum, p) => sum + parseInt(p.amount || p.montant || 0, 10), 0);
+    const stPays = payments.filter(
+      p =>
+        String(p.student_id) === String(st.id) &&
+        !p.is_cancelled &&
+        !isIndependentAnnexPayment(p)
+    );
+    const totalPaye = stPays.reduce(
+      (sum, p) => sum + parseInt(p.amount || p.montant || 0, 10),
+      0
+    );
     const fDetails = getFeeDetails(st);
     const totalExigibleSt = fDetails.total + EXTRA_FEES.INSCRIPTION_FEE;
     const reste = Math.max(0, totalExigibleSt - totalPaye);
@@ -1725,7 +1766,9 @@ const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
                 </span>
               </div>
               <div style={{ width: "100px", textAlign: "right" }}>
-                {(selectedReceipt.reste_a_payer || 0) === 0 && !selectedReceipt.is_cancelled && (
+                {(selectedReceipt.reste_a_payer || 0) === 0 &&
+                  !selectedReceipt.is_cancelled &&
+                  !isIndependentAnnexPayment(selectedReceipt) && (
                   <div style={{ border: "2px solid #16a34a", color: "#16a34a", padding: "2px 6px", borderRadius: "6px", fontWeight: "900", fontSize: "10px", textTransform: "uppercase", backgroundColor: "#f0fdf4" }}>
                     SOLDÉ
                   </div>
@@ -1756,24 +1799,38 @@ const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
             })()}
 
             <div style={{ background: "#fff", padding: "6px 10px", borderRadius: "6px", border: "1px solid #cbd5e1", marginBottom: "12px", fontSize: "10.5px" }}>
-              {selectedReceipt.notes && selectedReceipt.notes.includes("Paiement Dortoir Indépendant") ? (
+              {isIndependentAnnexPayment(selectedReceipt) ? (
                 <>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "3px" }}>
-                    <span>Montant du dortoir :</span>
-                    <strong>{parseInt(selectedReceipt.amount || selectedReceipt.montant || 0, 10).toLocaleString()} CFA</strong>
-                  </div>
+                  {isDortoirPayment(selectedReceipt) && (
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "3px" }}>
+                      <span>Dortoir / Internat :</span>
+                      <strong>{EXTRA_FEES.DORTOIR_FEE.toLocaleString()} CFA</strong>
+                    </div>
+                  )}
+
+                  {isUniformPayment(selectedReceipt) && (
+                    <div style={{ marginTop: "4px", marginBottom: "6px" }}>
+                      <strong>Tenues sélectionnées :</strong>
+                      {getUniformDetailsFromNotes(selectedReceipt.notes || "").map((detail, index) => (
+                        <div key={index} style={{ marginTop: "3px", paddingLeft: "8px" }}>
+                          <span>{detail}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "3px" }}>
                     <span>Montant versé ce jour :</span>
                     <strong style={{ color: selectedReceipt.is_cancelled ? "#dc2626" : "#16a34a" }}>
                       {parseInt(selectedReceipt.amount || selectedReceipt.montant || 0, 10).toLocaleString()} CFA
                     </strong>
                   </div>
-                  {/* Affichage des détails/tenues sur le reçu */}
-{selectedReceipt?.notes && (
-  <div style={{ marginTop: "6px", padding: "6px 8px", backgroundColor: "#f3f4f6", borderRadius: "4px", fontSize: "12px", color: "#374151" }}>
-    <strong>Détails :</strong> {selectedReceipt.notes}
-  </div>
-)}
+
+                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: "6px" }}>
+                    <span>Scolarité :</span>
+                    <strong style={{ color: "#16a34a" }}>Inchangée</strong>
+                  </div>
+
                   <hr style={{ margin: "4px 0", border: "0", borderTop: "1px dashed #cbd5e1" }} />
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", fontWeight: "800" }}>
                     <span>RESTE À PAYER (SCOLARITÉ) :</span>
