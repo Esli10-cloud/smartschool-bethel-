@@ -330,9 +330,20 @@ const totalAttendu = fees.total + totalInscription + totalRame;
     0
   );
 
-  const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
+const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
   const versementActuel = parseInt(amount, 10) || 0;
 
+  // 1. CALCULS POUR L'AFFICHAGE EN TEMPS RÉEL
+  let totalAnnexes = totalTenues || 0;
+  if (payDortoir) {
+    totalAnnexes += 35000;
+  }
+
+  const deductionScolarite = Math.max(0, versementActuel - totalAnnexes);
+  const nouveauCumul = totalDejaPaye + deductionScolarite;
+  const resteAPayer = Math.max(0, totalAttendu - nouveauCumul);
+
+  // 2. FONCTION DE SOUMISSION DU PAIEMENT
   const handleAddPayment = async (e) => {
     e.preventDefault();
     if (!selectedStudentId || versementActuel <= 0) {
@@ -340,17 +351,6 @@ const totalAttendu = fees.total + totalInscription + totalRame;
       return;
     }
 
-    // 1. Calcul dynamique des annexes et de la scolarité au moment du clic
-    let totalAnnexes = totalTenues || 0;
-    if (payDortoir) {
-      totalAnnexes += 35000;
-    }
-
-    const deductionScolarite = Math.max(0, versementActuel - totalAnnexes);
-    const nouveauCumul = totalDejaPaye + deductionScolarite;
-    const resteAPayer = Math.max(0, totalAttendu - nouveauCumul);
-
-    // 2. Construction des détails et notes
     const extraDetails = [];
     if (payDortoir) extraDetails.push("Paiement Dortoir Indépendant (35 000 F)");
     
@@ -367,7 +367,6 @@ const totalAttendu = fees.total + totalInscription + totalRame;
     const detailsStr = extraDetails.length > 0 ? ` [${extraDetails.join(" | ")}]` : "";
     const finalNotes = paymentNote ? `${paymentNote}${detailsStr}` : detailsStr.trim();
 
-    // 3. Objet de paiement prêt à envoyer
     const newPaymentObj = {
       student_id: selectedStudentId,
       amount: versementActuel,
