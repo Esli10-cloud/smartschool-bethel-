@@ -88,29 +88,7 @@ const EXAM_FEES = {
   BEPC: 4500,
 };
 
-const getExamOptionsForStudent = (student) => {
-  const classe = String(student?.classe || "").toUpperCase().replace(/\s+/g, " ").trim();
-  const isTle = classe.includes("TLE") || classe.includes("TERMINALE");
-  if (!isTle) return [];
 
-  const options = [
-    { id: "BAC", label: "BAC", price: EXAM_FEES.BAC },
-  ];
-
-  if (classe.includes("G2")) {
-    options.push(
-      { id: "BEP_COMMERCIAL", label: "BEP commercial", price: EXAM_FEES.BEP_COMMERCIAL },
-      { id: "CAP_COMMERCIAL", label: "CAP commercial", price: EXAM_FEES.CAP_COMMERCIAL }
-    );
-  } else {
-    options.push(
-      { id: "BEP_INDUSTRIEL", label: "BEP industriel", price: EXAM_FEES.BEP_INDUSTRIEL },
-      { id: "CAP_INDUSTRIEL", label: "CAP industriel", price: EXAM_FEES.CAP_INDUSTRIEL }
-    );
-  }
-
-  return options;
-};
 const UNIFORM_PRICES = [
   { id: "tee_shirt", label: "Tee-shirt", price: 2000 },
   { id: "lacoste", label: "Lacoste", price: 2500 },
