@@ -1779,7 +1779,7 @@ const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
 
       {selectedReceipt && (
         <Modal isOpen={receiptModalOpen} onClose={() => setReceiptModalOpen(false)} title="">
-          <div id="receipt-a5" style={{ padding: "15px", color: "#0f172a", fontFamily: "sans-serif", maxWidth: "650px", margin: "0 auto", background: "white" }}>
+          <div id="receipt-a5" style={{ padding: "10px 15px", color: "#0f172a", fontFamily: "sans-serif", maxWidth: "650px", margin: "0 auto", background: "white" }}>
             <OfficialHeader />
 
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
