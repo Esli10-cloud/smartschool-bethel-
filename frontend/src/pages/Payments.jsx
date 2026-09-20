@@ -353,41 +353,46 @@ const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
       return;
     }
 
-    // 1. Re-calcul direct et explicite des tenues à partir de l'objet uniformQuantities
-    let totalTenuesCalcul = 0;
-    const uniformSummaryArr = [];
+    // 1. Calcul explicite du total des tenues depuis les quantités
+    let totalTenuesCalcule = 0;
+    const uniformDetailsArr = [];
 
     UNIFORM_PRICES.forEach((item) => {
       const qte = parseInt(uniformQuantities[item.id] || 0, 10);
       if (qte > 0) {
-        totalTenuesCalcul += qte * item.price;
-        uniformSummaryArr.push(`${qte}x ${item.label}`);
+        totalTenuesCalcule += qte * item.price;
+        uniformDetailsArr.push(`${qte}x ${item.label}`);
       }
     });
 
     const montantDortoir = payDortoir ? 35000 : 0;
-    const totalAnnexes = totalTenuesCalcul + montantDortoir;
+    const totalAnnexes = totalTenuesCalcule + montantDortoir;
 
-    // 2. ISOLATION STRICTE : Si le montant versé sert à payer les annexes, 
-    // seule la SOMME QUI DÉPASSE les annexes va réduire la scolarité.
-    const deductionScolarite = Math.max(0, versementActuel - totalAnnexes);
+    // 2. ISOLATION STRICTE :
+    // Si des annexes/tenues sont sélectionnées, seule la partie supérieure aux annexes va à la scolarité
+    let deductionScolarite = 0;
+    if (totalAnnexes > 0) {
+      deductionScolarite = Math.max(0, versementActuel - totalAnnexes);
+    } else {
+      deductionScolarite = versementActuel;
+    }
 
     // 3. Calculs financiers scolarité
     const nouveauCumul = totalDejaPaye + deductionScolarite;
     const resteAPayer = Math.max(0, totalAttendu - nouveauCumul);
 
-    // 4. Construction des détails/notes
+    // 4. Construction des détails et notes
     const extraDetails = [];
-    if (payDortoir) extraDetails.push("Paiement Dortoir (35 000 F)");
-    if (uniformSummaryArr.length > 0) {
-      extraDetails.push(`Tenues: ${uniformSummaryArr.join(", ")} (${totalTenuesCalcul.toLocaleString()} CFA)`);
+    if (payDortoir) extraDetails.push("Dortoir (35 000 F)");
+    if (uniformDetailsArr.length > 0) {
+      extraDetails.push(`Tenues: ${uniformDetailsArr.join(", ")} (${totalTenuesCalcule.toLocaleString()} CFA)`);
     }
     if (currentUser?.nom) extraDetails.push(`Agent: ${currentUser.nom}`);
 
     const detailsStr = extraDetails.length > 0 ? ` [${extraDetails.join(" | ")}]` : "";
     const finalNotes = paymentNote ? `${paymentNote}${detailsStr}` : detailsStr.trim();
 
-    // 5. Enregistrement dans Supabase
+    // 5. Objet final envoyé à la base de données
     const newPaymentObj = {
       student_id: selectedStudentId,
       amount: versementActuel,
@@ -395,8 +400,8 @@ const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
       academic_year: academicYear,
       is_cancelled: false,
       total_exigible: totalAttendu,
-      cumul_paye: nouveauCumul,
-      reste_a_payer: resteAPayer,
+      cumul_paye: nouveauCumul,      // Ne bougera PAS si deductionScolarite = 0
+      reste_a_payer: resteAPayer,    // Ne bougera PAS si deductionScolarite = 0
       paye_inscription: payInscription && !alreadyPaidInscriptionHistory,
       paye_rame: payPaperRame && !alreadyPaidRameHistory,
       paye_dortoir: payDortoir && !alreadyPaidDortoirHistory,
