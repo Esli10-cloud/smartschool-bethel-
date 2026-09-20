@@ -346,27 +346,45 @@ const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
   // 2. FONCTION DE SOUMISSION DU PAIEMENT
   const handleAddPayment = async (e) => {
     e.preventDefault();
+    const versementActuel = parseInt(amount, 10) || 0;
+
     if (!selectedStudentId || versementActuel <= 0) {
       alert("Veuillez sélectionner un élève et saisir un montant valide.");
       return;
     }
 
+    // 1. Recalcul FORCÉ du total des tenues directement depuis les quantités sélectionnées
+    const totalTenuesCalcule = UNIFORM_PRICES.reduce((sum, item) => {
+      const qte = uniformQuantities[item.id] || 0;
+      return sum + qte * item.price;
+    }, 0);
+
+    // 2. Calcul des annexes (Tenues + Dortoir)
+    const totalAnnexes = totalTenuesCalcule + (payDortoir ? 35000 : 0);
+
+    // 3. Déduction stricte : seule la différence au-delà des annexes va à la scolarité
+    const deductionScolarite = Math.max(0, versementActuel - totalAnnexes);
+    const nouveauCumul = totalDejaPaye + deductionScolarite;
+    const resteAPayer = Math.max(0, totalAttendu - nouveauCumul);
+
+    // 4. Construction de la note avec le détail des tenues
     const extraDetails = [];
     if (payDortoir) extraDetails.push("Paiement Dortoir Indépendant (35 000 F)");
-    
+
     const uniformSummary = UNIFORM_PRICES
       .filter((item) => (uniformQuantities[item.id] || 0) > 0)
       .map((item) => `${uniformQuantities[item.id]}x ${item.label}`)
       .join(", ");
 
     if (uniformSummary) {
-      extraDetails.push(`Tenues: ${uniformSummary} (${totalTenues.toLocaleString()} CFA)`);
+      extraDetails.push(`Tenues: ${uniformSummary} (${totalTenuesCalcule.toLocaleString()} CFA)`);
     }
-    if (currentUser.nom) extraDetails.push(`Agent: ${currentUser.nom}`);
+    if (currentUser?.nom) extraDetails.push(`Agent: ${currentUser.nom}`);
 
     const detailsStr = extraDetails.length > 0 ? ` [${extraDetails.join(" | ")}]` : "";
     const finalNotes = paymentNote ? `${paymentNote}${detailsStr}` : detailsStr.trim();
 
+    // 5. Objet de paiement prêt à être envoyé
     const newPaymentObj = {
       student_id: selectedStudentId,
       amount: versementActuel,
@@ -381,7 +399,6 @@ const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
       paye_dortoir: payDortoir && !alreadyPaidDortoirHistory,
       notes: finalNotes,
     };
-
     try {
       const { data, error } = await supabase
         .from("payments")
