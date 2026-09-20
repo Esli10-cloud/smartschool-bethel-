@@ -1734,6 +1734,32 @@ const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
                     {alreadyPaidRameHistory && <strong style={{ color: "#16a34a", marginLeft: "6px" }}>✓ (Déjà payé)</strong>}
                   </span>
                 </label>
+                {/* Option Frais de dossier d'examen */}
+{selectedStudent && getExamOptionsByClass(selectedStudent.classe || selectedStudent.class_name).length > 0 && (
+  <div style={{ marginTop: "12px", padding: "10px", backgroundColor: "#f8fafc", borderRadius: "6px", border: "1px solid #e2e8f0" }}>
+    <label style={{ fontWeight: "bold", fontSize: "13px", display: "block", marginBottom: "6px" }}>
+      Frais de dossier d'examen :
+    </label>
+    {getExamOptionsByClass(selectedStudent.classe || selectedStudent.class_name).map((exam) => (
+      <label key={exam.label} style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", marginBottom: "4px", cursor: "pointer" }}>
+        <input
+          type="checkbox"
+          checked={examSelections.some((item) => item.label === exam.label)}
+          onChange={(e) => {
+            if (e.target.checked) {
+              setExamSelections((prev) => [...prev, exam]);
+              setAmount((prev) => (parseInt(prev || 0, 10) + exam.price).toString());
+            } else {
+              setExamSelections((prev) => prev.filter((item) => item.label !== exam.label));
+              setAmount((prev) => Math.max(0, parseInt(prev || 0, 10) - exam.price).toString());
+            }
+          }}
+        />
+        <span>{exam.label} ({exam.price.toLocaleString()} CFA)</span>
+      </label>
+    ))}
+  </div>
+)}
 
                <label style={{ 
   display: "flex", 
