@@ -60,9 +60,30 @@ const isIndependentAnnexPayment = (p) =>
   isDortoirPayment(p) || isUniformPayment(p);
 
 const getUniformDetailsFromNotes = (notes = "") => {
-  const match = notes.match(/Tenues:\s*(.*?)\s*\(([^)]*)\)/);
+  const match = notes.match(/Tenues:\s*(.*?)\s*\((?:[\d\s.,]+)\s*CFA\)/i);
   if (!match) return [];
-  return match[1].split(",").map((item) => item.trim()).filter(Boolean);
+
+  return match[1]
+    .split(/,\s*/)
+    .map((entry) => {
+      const detailMatch = entry.match(/^(\d+)x\s*(.*?)\s*:\s*([\d\s.,]+)\s*CFA$/i);
+      if (!detailMatch) return null;
+
+      const quantity = parseInt(detailMatch[1], 10) || 0;
+      const label = detailMatch[2].trim();
+      const total = parseInt(detailMatch[3].replace(/[\s.]/g, "").replace(",", ""), 10) || 0;
+      const priceItem = UNIFORM_PRICES.find((item) =>
+        label.toLowerCase().startsWith(item.label.toLowerCase())
+      );
+
+      return {
+        label,
+        quantity,
+        unitPrice: priceItem?.price || (quantity > 0 ? Math.round(total / quantity) : 0),
+        total,
+      };
+    })
+    .filter(Boolean);
 };
 const formatNomPrenom = (nom = "", prenom = "") => {
   const nomFormatted = nom.trim().toUpperCase();
@@ -425,8 +446,8 @@ const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
       total_exigible: totalExigibleInt,
       cumul_paye: nouveauCumul,      // SERA ÉGAL À cumulInitial SI deductionScolarite = 0
       reste_a_payer: resteAPayer,    // NE BOUGERA PAS SI deductionScolarite = 0
-      paye_inscription: payInscription && !alreadyPaidInscriptionHistory,
-      paye_rame: payPaperRame && !alreadyPaidRameHistory,
+      paye_inscription: !hasIndependentAnnexSelection && payInscription && !alreadyPaidInscriptionHistory,
+      paye_rame: !hasIndependentAnnexSelection && payPaperRame && !alreadyPaidRameHistory,
       paye_dortoir: payDortoir && !alreadyPaidDortoirHistory,
       notes: finalNotes,
     }; 
@@ -565,7 +586,10 @@ const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
 
       if (isTenue) {
         uniformDetails.forEach((detail) => {
-          bodyData.push(['Tenue :', detail]);
+          bodyData.push([
+            `Tenue (${detail.quantity}x) :`,
+            `${detail.label} — ${detail.total.toLocaleString()} CFA`
+          ]);
         });
       }
 
@@ -1812,8 +1836,9 @@ const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
                     <div style={{ marginTop: "4px", marginBottom: "6px" }}>
                       <strong>Tenues sélectionnées :</strong>
                       {getUniformDetailsFromNotes(selectedReceipt.notes || "").map((detail, index) => (
-                        <div key={index} style={{ marginTop: "3px", paddingLeft: "8px" }}>
-                          <span>{detail}</span>
+                        <div key={`${detail.label}-${index}`} style={{ display: "flex", justifyContent: "space-between", gap: "12px", marginTop: "4px", paddingLeft: "8px" }}>
+                          <span>{detail.label} — {detail.quantity} × {detail.unitPrice.toLocaleString()} CFA</span>
+                          <strong>{detail.total.toLocaleString()} CFA</strong>
                         </div>
                       ))}
                     </div>
