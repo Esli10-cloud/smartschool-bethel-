@@ -41,6 +41,38 @@ const EXTRA_FEES = {
   PAPER_RAME_FEE: 3500,
   DORTOIR_FEE: 35000,
 };
+
+const EXAM_FEES = {
+  BAC: 17000,
+  BEP_INDUSTRIEL: 9000,
+  CAP_INDUSTRIEL: 9000,
+  BEP_COMMERCIAL: 6500,
+  CAP_COMMERCIAL: 6500,
+};
+
+const getExamOptionsForStudent = (student) => {
+  const classe = String(student?.classe || "").toUpperCase().replace(/\s+/g, " ").trim();
+  const isTle = classe.includes("TLE") || classe.includes("TERMINALE");
+  if (!isTle) return [];
+
+  const options = [
+    { id: "BAC", label: "BAC", price: EXAM_FEES.BAC },
+  ];
+
+  if (classe.includes("G2")) {
+    options.push(
+      { id: "BEP_COMMERCIAL", label: "BEP commercial", price: EXAM_FEES.BEP_COMMERCIAL },
+      { id: "CAP_COMMERCIAL", label: "CAP commercial", price: EXAM_FEES.CAP_COMMERCIAL }
+    );
+  } else {
+    options.push(
+      { id: "BEP_INDUSTRIEL", label: "BEP industriel", price: EXAM_FEES.BEP_INDUSTRIEL },
+      { id: "CAP_INDUSTRIEL", label: "CAP industriel", price: EXAM_FEES.CAP_INDUSTRIEL }
+    );
+  }
+
+  return options;
+};
 const UNIFORM_PRICES = [
   { id: "tee_shirt", label: "Tee-shirt", price: 2000 },
   { id: "lacoste", label: "Lacoste", price: 2500 },
@@ -56,8 +88,11 @@ const isDortoirPayment = (p) =>
 const isUniformPayment = (p) =>
   Boolean(p?.notes && p.notes.includes("Tenues:"));
 
+const isExamPayment = (p) =>
+  Boolean(p?.notes && p.notes.includes("Dossiers:"));
+
 const isIndependentAnnexPayment = (p) =>
-  isDortoirPayment(p) || isUniformPayment(p);
+  isDortoirPayment(p) || isUniformPayment(p) || isExamPayment(p);
 
 const getUniformDetailsFromNotes = (notes = "") => {
   const match = notes.match(/Tenues:\s*(.*?)\s*\((?:[\d\s.,]+)\s*CFA\)/i);
@@ -85,6 +120,24 @@ const getUniformDetailsFromNotes = (notes = "") => {
     })
     .filter(Boolean);
 };
+const getExamDetailsFromNotes = (notes = "") => {
+  const match = notes.match(/Dossiers:\s*(.*?)\s*\((?:[\d\s.,]+)\s*CFA\)/i);
+  if (!match) return [];
+
+  return match[1]
+    .split(/,\s*/)
+    .map((entry) => {
+      const detailMatch = entry.match(/^(.*?)\s*:\s*([\d\s.,]+)\s*CFA$/i);
+      if (!detailMatch) return null;
+
+      return {
+        label: detailMatch[1].trim(),
+        total: parseInt(detailMatch[2].replace(/[\s.]/g, "").replace(",", ""), 10) || 0,
+      };
+    })
+    .filter(Boolean);
+};
+
 const formatNomPrenom = (nom = "", prenom = "") => {
   const nomFormatted = nom.trim().toUpperCase();
   const prenomFormatted = prenom
@@ -145,6 +198,7 @@ export default function Payments() {
   const [payPaperRame, setPayPaperRame] = useState(false);
   const [payDortoir, setPayDortoir] = useState(false);
   const [alreadyPaidDortoirHistory, setAlreadyPaidDortoirHistory] = useState(false);
+  const [examSelections, setExamSelections] = useState([]);
   // Gestion indépendante des quantités pour les tenues
   const [uniformQuantities, setUniformQuantities] = useState({
     tee_shirt: 0,
@@ -159,12 +213,23 @@ export default function Payments() {
     return acc + (qty * item.price);
   }, 0);
 
+  const examOptions = getExamOptionsForStudent(selectedStudent);
+  const totalDossiers = examOptions
+    .filter((exam) => examSelections.includes(exam.id))
+    .reduce((sum, exam) => sum + exam.price, 0);
+
   // Fonction pour mettre à jour la quantité d'une tenue
   const handleUniformChange = (id, value) => {
     const qty = Math.max(0, parseInt(value, 10) || 0);
     setUniformQuantities((prev) => ({ ...prev, [id]: qty }));
   };
   const [paymentNote, setPaymentNote] = useState("");
+
+  useEffect(() => {
+    if (totalDossiers > 0 && totalTenues === 0 && !payDortoir) {
+      setAmount(String(totalDossiers));
+    }
+  }, [totalDossiers, totalTenues, payDortoir]);
 
   // Remises & bourses
   const [customReductions, setCustomReductions] = useState({});
@@ -402,10 +467,16 @@ const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
     }
 
     // 2. Détection d'un paiement indépendant (tenues et/ou dortoir)
-    const totalAnnexesExplicite =
-      totalTenuesCalcule + (payDortoir ? EXTRA_FEES.DORTOIR_FEE : 0);
+    const selectedExamDetails = examOptions
+      .filter((exam) => examSelections.includes(exam.id))
+      .map((exam) => `${exam.label} : ${exam.price.toLocaleString()} CFA`);
+
+    const totalDossiersCalcule = examOptions
+      .filter((exam) => examSelections.includes(exam.id))
+      .reduce((sum, exam) => sum + exam.price, 0);
+
     const hasIndependentAnnexSelection =
-      totalTenuesCalcule > 0 || payDortoir;
+      totalTenuesCalcule > 0 || payDortoir || totalDossiersCalcule > 0;
 
     // VERROU DE SÉCURITÉ :
     // Dès qu'une tenue ou le dortoir est sélectionné, le versement
@@ -429,6 +500,11 @@ const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
     if (uniformDetailsArr.length > 0) {
       extraDetails.push(
         `Tenues: ${uniformDetailsArr.join(", ")} (${totalTenuesCalcule.toLocaleString()} CFA)`
+      );
+    }
+    if (selectedExamDetails.length > 0) {
+      extraDetails.push(
+        `Dossiers: ${selectedExamDetails.join(", ")} (${totalDossiersCalcule.toLocaleString()} CFA)`
       );
     }
     if (currentUser?.nom) extraDetails.push(`Agent: ${currentUser.nom}`);
@@ -470,6 +546,7 @@ const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
         setPayInscription(true);
         setPayPaperRame(false);
         setPayDortoir(false);
+        setExamSelections([]);
         setUniformQuantities({ tee_shirt: 0, lacoste: 0, pagne_chemise: 0, tissu: 0 });
         
         await recordAuditLog(
@@ -537,8 +614,10 @@ const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
     const { nomFormatted, prenomFormatted } = formatNomPrenom(p.students?.nom, p.students?.prenom);
     const isDortoir = isDortoirPayment(p);
     const isTenue = isUniformPayment(p);
+    const isExam = isExamPayment(p);
     const isIndependentAnnex = isIndependentAnnexPayment(p);
     const uniformDetails = getUniformDetailsFromNotes(p.notes || "");
+    const examDetails = getExamDetailsFromNotes(p.notes || "");
 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12);
@@ -588,6 +667,15 @@ const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
         uniformDetails.forEach((detail) => {
           bodyData.push([
             `Tenue (${detail.quantity}x) :`,
+            `${detail.label} — ${detail.total.toLocaleString()} CFA`
+          ]);
+        });
+      }
+
+      if (isExam) {
+        examDetails.forEach((detail) => {
+          bodyData.push([
+            'Frais de dossier :',
             `${detail.label} — ${detail.total.toLocaleString()} CFA`
           ]);
         });
@@ -1460,7 +1548,52 @@ const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
                 })}
             </select>
           </div>
-{/* --- MODULE TENUES SCOLAIRES --- */}
+{/* --- MODULE FRAIS DE DOSSIER / EXAMENS --- */}
+          {selectedStudent && examOptions.length > 0 && (
+            <div style={{ background: "#fff7ed", padding: "14px", borderRadius: "8px", marginTop: "12px", marginBottom: "16px", border: "1px solid #fed7aa" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontWeight: "700", color: "#9a3412", fontSize: "13px" }}>
+                  📁 Frais de dossier / examens
+                </span>
+                {totalDossiers > 0 && (
+                  <span style={{ color: "#c2410c", fontWeight: "800", fontSize: "13px" }}>
+                    Total : {totalDossiers.toLocaleString()} CFA
+                  </span>
+                )}
+              </div>
+              <div style={{ marginTop: "6px", fontSize: "11px", color: "#9a3412" }}>
+                Plusieurs examens peuvent être sélectionnés. Le paiement reste indépendant de la scolarité.
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginTop: "10px" }}>
+                {examOptions.map((exam) => {
+                  const checked = examSelections.includes(exam.id);
+                  return (
+                    <label key={exam.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px", background: "#ffffff", padding: "8px 10px", borderRadius: "8px", border: checked ? "1.5px solid #ea580c" : "1px solid #fdba74", cursor: "pointer" }}>
+                      <span style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: "600", color: "#7c2d12" }}>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={(e) => {
+                            setExamSelections((prev) =>
+                              e.target.checked
+                                ? [...prev, exam.id]
+                                : prev.filter((id) => id !== exam.id)
+                            );
+                          }}
+                        />
+                        {exam.label}
+                      </span>
+                      <span style={{ fontSize: "11px", fontWeight: "700", color: "#9a3412" }}>
+                        {exam.price.toLocaleString()} F
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* --- MODULE TENUES SCOLAIRES --- */}
           <div style={{ background: "#f8fafc", padding: "14px", borderRadius: "8px", marginTop: "12px", marginBottom: "16px", border: "1px solid #e2e8f0" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <span style={{ fontWeight: "700", color: "#1e293b", fontSize: "13px" }}>
@@ -1779,7 +1912,7 @@ const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
 
       {selectedReceipt && (
         <Modal isOpen={receiptModalOpen} onClose={() => setReceiptModalOpen(false)} title="">
-          <div id="receipt-a5" style={{ padding: "10px 15px", color: "#0f172a", fontFamily: "sans-serif", maxWidth: "650px", margin: "0 auto", background: "white" }}>
+          <div id="receipt-a5" style={{ padding: "15px", color: "#0f172a", fontFamily: "sans-serif", maxWidth: "650px", margin: "0 auto", background: "white" }}>
             <OfficialHeader />
 
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
@@ -1838,6 +1971,17 @@ const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
                       {getUniformDetailsFromNotes(selectedReceipt.notes || "").map((detail, index) => (
                         <div key={`${detail.label}-${index}`} style={{ display: "flex", justifyContent: "space-between", gap: "12px", marginTop: "4px", paddingLeft: "8px" }}>
                           <span>{detail.label} — {detail.quantity} × {detail.unitPrice.toLocaleString()} CFA</span>
+                          <strong>{detail.total.toLocaleString()} CFA</strong>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {isExamPayment(selectedReceipt) && (
+                    <div style={{ marginTop: "4px", marginBottom: "6px" }}>
+                      <strong>Frais de dossier sélectionnés :</strong>
+                      {getExamDetailsFromNotes(selectedReceipt.notes || "").map((detail, index) => (
+                        <div key={`${detail.label}-${index}`} style={{ display: "flex", justifyContent: "space-between", gap: "12px", marginTop: "4px", paddingLeft: "8px" }}>
+                          <span>{detail.label}</span>
                           <strong>{detail.total.toLocaleString()} CFA</strong>
                         </div>
                       ))}
