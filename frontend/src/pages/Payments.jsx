@@ -24,7 +24,44 @@ import {
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+// Configuration des frais d'examen
+const EXAM_FEES_CONFIG = {
+  BEPC: { label: "BEPC", price: 4500 },
+  BAC: { label: "BAC", price: 17000 },
+  BEP_INDUS: { label: "BEP Industriel", price: 9000 },
+  CAP_INDUS: { label: "CAP Industriel", price: 9000 },
+  BEP_COM: { label: "BEP Commercial", price: 6500 },
+  CAP_COM: { label: "CAP Commercial", price: 6500 },
+};
 
+const getExamOptionsByClass = (studentClass = "") => {
+  if (!studentClass) return [];
+  const cls = studentClass.toUpperCase().trim();
+  
+  if (cls.includes("3")) {
+    return [EXAM_FEES_CONFIG.BEPC];
+  }
+
+  if (cls.includes("TLE") || cls.includes("TERMINALE")) {
+    if (cls.includes("G2")) {
+      return [
+        EXAM_FEES_CONFIG.BAC,
+        EXAM_FEES_CONFIG.BEP_COM,
+        EXAM_FEES_CONFIG.CAP_COM,
+      ];
+    }
+    const isIndustrial = ["CIVIL", "MVA", "ELEC", "GENIE", "F2", "F3", "F4", "MEM"].some(kw => cls.includes(kw));
+    if (isIndustrial) {
+      return [
+        EXAM_FEES_CONFIG.BAC,
+        EXAM_FEES_CONFIG.BEP_INDUS,
+        EXAM_FEES_CONFIG.CAP_INDUS,
+      ];
+    }
+    return [EXAM_FEES_CONFIG.BAC];
+  }
+  return [];
+};
 // Configuration centralisée de l'établissement
 const SCHOOL_CONFIG = {
   name: "LYCÉE TECHNIQUE BETHEL",
@@ -48,6 +85,7 @@ const EXAM_FEES = {
   CAP_INDUSTRIEL: 9000,
   BEP_COMMERCIAL: 6500,
   CAP_COMMERCIAL: 6500,
+  BEPC: 4500,
 };
 
 const getExamOptionsForStudent = (student) => {
