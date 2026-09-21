@@ -512,6 +512,16 @@ const totalAttendu = fees.total + totalInscription + totalRame;
     (sum, p) => sum + parseInt(p.amount || p.montant || 0, 10),
     0
   );
+// --- NOUVEAU BLOC DE CALCUL POUR LA SCOLARITÉ PURE ---
+// On isole les frais annexes déjà payés pour ne pas les compter dans la scolarité
+const fraisAnnexesDejaPayes = activeStudentPayments.reduce((sum, p) => {
+  let annexes = 0;
+  if (p.paye_inscription) annexes += 5000;
+  if (p.paye_rame) annexes += 3500;
+  return sum + annexes;
+}, 0);
+
+// Scolarité pure déjà payée (le total versé moins les frais annexes)
 
 // 1. Déclaration de versementActuel
 const versementActuel = parseInt(amount, 10) || 0;
@@ -528,8 +538,7 @@ const paperFeePaid = studentData?.paper_fee_paid ? 3500 : 0;
 const totalAnnexesPayees = regFeePaid + paperFeePaid;
 
 // 5. Isolation de la scolarité pure déjà payée
-const scolaritePurePayee = Math.max(0, (typeof totalDejaPaye !== 'undefined' ? totalDejaPaye : 0) - totalAnnexesPayees);
-
+const scolaritePurePayee = Math.max(0, totalDejaPaye - fraisAnnexesDejaPayes);
 // 6. Calcul du vrai reste à payer avant le versement du jour
 const resteActuelAvantPaiement = Math.max(0, totalScolariteFixe - scolaritePurePayee);
 
