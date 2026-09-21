@@ -513,7 +513,16 @@ const totalAttendu = fees.total + totalInscription + totalRame;
     0
   );
 
-const resteActuelAvantPaiement = Math.max(0, totalAttendu - totalDejaPaye);
+// Calcul des frais annexes déjà réglés
+const regFeePaid = currentStudent?.registration_fee_paid ? 5000 : 0;
+const paperFeePaid = currentStudent?.paper_fee_paid ? 3500 : 0;
+const totalAnnexesPayees = regFeePaid + paperFeePaid;
+
+// Déduction pour ne garder QUE la scolarité pure déjà payée
+const scolaritePurePayee = Math.max(0, totalDejaPaye - totalAnnexesPayees);
+
+// Vrai reste à payer sur la scolarité pure (sans toucher aux frais annexes)
+const resteActuelAvantPaiement = Math.max(0, fees.total - scolaritePurePayee);
   const versementActuel = parseInt(amount, 10) || 0;
 
   // 1. CALCULS POUR L'AFFICHAGE EN TEMPS RÉEL
@@ -1824,8 +1833,10 @@ const totalDossiersCalcule = selectedExamObjects.reduce(
               </div>
 
               <div style={{ marginTop: "8px", paddingTop: "8px", borderTop: "1px solid #cbd5e1", display: "flex", justifyContent: "space-between", fontWeight: "800", fontSize: "14px", background: "#fef2f2", padding: "8px", borderRadius: "6px" }}>
-                <span style={{ color: "#991b1b" }}>Reste à payer scolarité :</span>
-                <span style={{ color: resteActuelAvantPaiement > 0 ? "#dc2626" : "#16a34a" }}>{resteActuelAvantPaiement.toLocaleString()} CFA</span>
+             <span style={{ color: "#991b1b" }}>Reste à payer scolarité :</span>
+<span style={{ color: (totalScolarite - dejaPaye) > 0 ? "#dc2626" : "#16a34a", fontWeight: "bold" }}>
+  {Math.max(0, totalScolarite - dejaPaye)} CFA
+</span>
               </div>
             </div>
           )}
