@@ -202,12 +202,12 @@ export const SCHOOL_FEES_CONFIG = {
   "TLE D": { v1: 50000, v2: 25000, v3: 25000, total: 100000 },
   "TLE A": { v1: 50000, v2: 25000, v3: 25000, total: 100000 }
 };
-export const getExactInstallments = (studentClass = "", totalScolarite = 0) => {
+export const getExactInstallments = (studentClass = "", totalScolariteFixe = 0) => {
   if (!studentClass) {
     return {
-      v1: Math.round(totalScolarite * 0.5),
-      v2: Math.round(totalScolarite * 0.25),
-      v3: Math.round(totalScolarite * 0.25)
+      v1: Math.round(totalScolariteFixe * 0.5),
+      v2: Math.round(totalScolariteFixe * 0.25),
+      v3: Math.round(totalScolariteFixe * 0.25)
     };
   }
 
@@ -222,10 +222,10 @@ export const getExactInstallments = (studentClass = "", totalScolarite = 0) => {
   }
 
   return {
-    v1: Math.round(totalScolarite * 0.5),
-    v2: Math.round(totalScolarite * 0.25),
-    v3: Math.round(totalScolarite * 0.25),
-    total: totalScolarite
+    v1: Math.round(totalScolariteFixe * 0.5),
+    v2: Math.round(totalScolariteFixe * 0.25),
+    v3: Math.round(totalScolariteFixe * 0.25),
+    total: totalScolariteFixe
   };
 };
 export default function Payments() {
@@ -519,25 +519,27 @@ const versementActuel = parseInt(amount, 10) || 0;
 // 2. Identification de l'élève
 const studentData = typeof currentStudent !== 'undefined' ? currentStudent : (typeof selectedStudent !== 'undefined' ? selectedStudent : null);
 
-// 3. Calcul des frais annexes déjà réglés
+// 3. Obtention de la scolarité totale fixe
+const totalScolariteFixe = (typeof fees !== 'undefined' && fees?.total) ? fees.total : ((typeof feeInfo !== 'undefined' && feeInfo?.total) ? feeInfo.total : 0);
+
+// 4. Calcul des frais annexes déjà réglés
 const regFeePaid = studentData?.registration_fee_paid ? 5000 : 0;
 const paperFeePaid = studentData?.paper_fee_paid ? 3500 : 0;
 const totalAnnexesPayees = regFeePaid + paperFeePaid;
 
-// 4. Isolation de la scolarité pure déjà payée
-const scolaritePurePayee = Math.max(0, totalDejaPaye - totalAnnexesPayees);
+// 5. Isolation de la scolarité pure déjà payée
+const scolaritePurePayee = Math.max(0, (typeof totalDejaPaye !== 'undefined' ? totalDejaPaye : 0) - totalAnnexesPayees);
 
-// 5. Calcul du vrai reste à payer avant le versement du jour
-const totalScolaritePure = fees?.total || 0;
-const resteActuelAvantPaiement = Math.max(0, totalScolaritePure - scolaritePurePayee);
+// 6. Calcul du vrai reste à payer avant le versement du jour
+const resteActuelAvantPaiement = Math.max(0, totalScolariteFixe - scolaritePurePayee);
 
-// 6. CALCULS POUR L'AFFICHAGE EN TEMPS RÉEL (SIMULATION DU VERSEMENT)
-const hasIndependentAnnexSelection = totalTenues > 0 || payDortoir;
+// 7. CALCULS POUR L'AFFICHAGE EN TEMPS RÉEL (SIMULATION DU VERSEMENT)
+const hasIndependentAnnexSelection = (typeof totalTenues !== 'undefined' ? totalTenues : 0) > 0 || (typeof payDortoir !== 'undefined' && payDortoir);
 
 // Un paiement de tenue ou de dortoir ne doit JAMAIS toucher à la scolarité
 const deductionScolarite = hasIndependentAnnexSelection ? 0 : versementActuel;
 const nouveauCumul = scolaritePurePayee + deductionScolarite;
-const resteAPayer = Math.max(0, totalScolaritePure - nouveauCumul);
+const resteAPayer = Math.max(0, totalScolariteFixe - nouveauCumul);
 
   // 2. FONCTION DE SOUMISSION DU PAIEMENT
  const handleAddPayment = async (e) => {
@@ -1840,8 +1842,8 @@ const totalDossiersCalcule = selectedExamObjects.reduce(
 
               <div style={{ marginTop: "8px", paddingTop: "8px", borderTop: "1px solid #cbd5e1", display: "flex", justifyContent: "space-between", fontWeight: "800", fontSize: "14px", background: "#fef2f2", padding: "8px", borderRadius: "6px" }}>
              <span style={{ color: "#991b1b" }}>Reste à payer scolarité :</span>
-<span style={{ color: (totalScolarite - dejaPaye) > 0 ? "#dc2626" : "#16a34a", fontWeight: "bold" }}>
-  {Math.max(0, totalScolarite - dejaPaye)} CFA
+<span style={{ color: (fees.total - totalDejaPaye) > 0 ? "#dc2626" : "#16a34a", fontWeight: "bold" }}>
+  {Math.max(0, fees.total - totalDejaPaye).toLocaleString()} CFA
 </span>
               </div>
             </div>
@@ -1856,12 +1858,12 @@ const totalDossiersCalcule = selectedExamObjects.reduce(
   const feeInfo = getFeeDetails(currentStudent);
   if (!feeInfo) return null;
 
-  const totalScolarite = feeInfo.baseTotal || feeInfo.total || 0;
+  const totalScolariteFixe = feeInfo.baseTotal || feeInfo.total || 0;
 
 // Récupération dynamique basée sur la grille tarifaire exacte
 const matchedFees = getExactInstallments(
   currentStudent?.classe || currentStudent?.class_name,
-  totalScolarite
+  totalScolariteFixe
 );
 
 const v1 = feeInfo.installments?.v1 || matchedFees.v1;
@@ -1879,7 +1881,7 @@ const dejaPaye = Math.max(0, totalEncaisse - totalAnnexesPayees);
   // Vérification du statut de chaque tranche
   const isV1Done = dejaPaye >= v1;
   const isV2Done = dejaPaye >= (v1 + v2);
-  const isV3Done = dejaPaye >= totalScolarite;
+  const isV3Done = dejaPaye >= totalScolariteFixe;
 
   const handleSelectInstallment = (amount, isDone) => {
     if (isDone) return; // Empêche l'action si déjà payé
