@@ -513,17 +513,18 @@ const totalAttendu = fees.total + totalInscription + totalRame;
     0
   );
 
-// Calcul des frais annexes déjà réglés
-const regFeePaid = currentStudent?.registration_fee_paid ? 5000 : 0;
-const paperFeePaid = currentStudent?.paper_fee_paid ? 3500 : 0;
+// Calcul des frais annexes déjà réglés en utilisant l'élève sélectionné
+const studentData = typeof currentStudent !== 'undefined' ? currentStudent : (typeof selectedStudent !== 'undefined' ? selectedStudent : null);
+
+const regFeePaid = studentData?.registration_fee_paid ? 5000 : 0;
+const paperFeePaid = studentData?.paper_fee_paid ? 3500 : 0;
 const totalAnnexesPayees = regFeePaid + paperFeePaid;
 
 // Déduction pour ne garder QUE la scolarité pure déjà payée
 const scolaritePurePayee = Math.max(0, totalDejaPaye - totalAnnexesPayees);
 
-// Vrai reste à payer sur la scolarité pure (sans toucher aux frais annexes)
+// Vrai reste à payer sur la scolarité pure
 const resteActuelAvantPaiement = Math.max(0, fees.total - scolaritePurePayee);
-  const versementActuel = parseInt(amount, 10) || 0;
 
   // 1. CALCULS POUR L'AFFICHAGE EN TEMPS RÉEL
   const hasIndependentAnnexSelection = totalTenues > 0 || payDortoir;
