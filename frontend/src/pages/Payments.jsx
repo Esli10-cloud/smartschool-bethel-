@@ -539,7 +539,7 @@ const hasIndependentAnnexSelection = (typeof totalTenues !== 'undefined' ? total
 // Un paiement de tenue ou de dortoir ne doit JAMAIS toucher à la scolarité
 const deductionScolarite = hasIndependentAnnexSelection ? 0 : versementActuel;
 const nouveauCumul = scolaritePurePayee + deductionScolarite;
-const resteAPayer = Math.max(0, totalScolariteFixe - nouveauCumul);
+const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRame) - nouveauCumul);
 
   // 2. FONCTION DE SOUMISSION DU PAIEMENT
  const handleAddPayment = async (e) => {
