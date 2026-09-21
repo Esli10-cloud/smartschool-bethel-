@@ -2158,24 +2158,50 @@ const dejaPaye = Math.max(0, totalEncaisse - totalAnnexesPayees);
                     </span>
                   </div>
                 </>
-              ) : (
+                          ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span>Total Scolarité Exigible :</span>
-                    <strong>{(selectedReceipt.total_exigible || 0).toLocaleString()} CFA</strong>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontWeight: "700", borderBottom: "1px solid #e2e8f0", paddingBottom: "4px", marginBottom: "4px" }}>
+                    <span>Détails du règlement :</span>
+                    <span></span>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  
+                  {/* Calcul de la scolarité payée ce jour = Montant total - inscription - rame */}
+                  <div style={{ display: "flex", justifyContent: "space-between", paddingLeft: "8px" }}>
+                    <span>Scolarité :</span>
+                    <strong>
+                      {Math.max(0, parseInt(selectedReceipt.amount || 0, 10) - (selectedReceipt.paye_inscription ? 5000 : 0) - (selectedReceipt.paye_rame ? 3500 : 0)).toLocaleString()} CFA
+                    </strong>
+                  </div>
+
+                  {selectedReceipt.paye_inscription && (
+                    <div style={{ display: "flex", justifyContent: "space-between", paddingLeft: "8px" }}>
+                      <span>Droit d'inscription :</span>
+                      <strong>5 000 CFA</strong>
+                    </div>
+                  )}
+
+                  {selectedReceipt.paye_rame && (
+                    <div style={{ display: "flex", justifyContent: "space-between", paddingLeft: "8px" }}>
+                      <span>Rame de papier :</span>
+                      <strong>3 500 CFA</strong>
+                    </div>
+                  )}
+
+                  <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px dashed #cbd5e1", marginTop: "6px", paddingTop: "6px" }}>
                     <span>Montant versé ce jour :</span>
                     <strong style={{ color: selectedReceipt.is_cancelled ? "#dc2626" : "#16a34a" }}>
                       {parseInt(selectedReceipt.amount || selectedReceipt.montant || 0, 10).toLocaleString()} CFA
                     </strong>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+
+                  {/* Cumul global */}
+                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: "4px" }}>
                     <span>Cumul total réglé :</span>
                     <strong style={{ color: "#2563eb" }}>
                       {(selectedReceipt.cumul_paye || 0).toLocaleString()} CFA
                     </strong>
                   </div>
+
                   <hr style={{ margin: "4px 0", border: "0", borderTop: "1px dashed #cbd5e1" }} />
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", fontWeight: "800" }}>
                     <span>RESTE À PAYER :</span>
@@ -2184,7 +2210,7 @@ const dejaPaye = Math.max(0, totalEncaisse - totalAnnexesPayees);
                     </span>
                   </div>
                 </div>
-              )}
+              )}  
             </div>
 
             <div style={{ textAlign: "center", margin: "10px 0", padding: "6px", background: "#f8fafc", borderRadius: "6px", border: "1px solid #e2e8f0" }}>
