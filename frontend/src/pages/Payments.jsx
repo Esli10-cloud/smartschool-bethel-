@@ -162,7 +162,72 @@ const formatNomPrenom = (nom = "", prenom = "") => {
     .replace(/(^\w|\s\w)/g, (m) => m.toUpperCase());
   return { nomFormatted, prenomFormatted };
 };
+// Grille tarifaire officielle (hors Energie Solaire, Informatique et Dessin Bâtiment)
+export const SCHOOL_FEES_CONFIG = {
+  // ÉLECTRONIQUE / ÉLECTROTECHNIQUE
+  "CAP 1": { v1: 100000, v2: 25000, v3: 25000, total: 150000 },
+  "CAP 2": { v1: 100000, v2: 25000, v3: 25000, total: 150000 },
+  "CAP 3": { v1: 100000, v2: 25000, v3: 25000, total: 150000 },
+  "BEP 1 EL": { v1: 100000, v2: 25000, v3: 25000, total: 150000 },
+  "BEP 2 EL": { v1: 100000, v2: 25000, v3: 25000, total: 150000 },
+  "TLE F2": { v1: 100000, v2: 35000, v3: 30000, total: 165000 },
+  "TLE F3": { v1: 100000, v2: 35000, v3: 30000, total: 165000 },
+  "BAC-PRO EL": { v1: 140000, v2: 40000, v3: 40000, total: 220000 },
 
+  // GÉNIE CIVIL
+  "BEP 1 GC": { v1: 100000, v2: 50000, v3: 50000, total: 200000 },
+  "BEP 2 GC": { v1: 100000, v2: 50000, v3: 50000, total: 200000 },
+  "TLE F4": { v1: 110000, v2: 50000, v3: 50000, total: 210000 },
+  "BAC-PRO GC": { v1: 140000, v2: 40000, v3: 40000, total: 220000 },
+
+  // MÉCANIQUE AUTO (MVA)
+  "CAP MVA": { v1: 100000, v2: 25000, v3: 25000, total: 150000 },
+  "BEP 1 MVA": { v1: 100000, v2: 35000, v3: 30000, total: 165000 },
+  "BEP 2 MVA": { v1: 100000, v2: 35000, v3: 30000, total: 165000 },
+  "BAC-PRO MVA": { v1: 100000, v2: 60000, v3: 60000, total: 220000 },
+
+  // COMPTABILITÉ
+  "BEP 1 AB": { v1: 50000, v2: 25000, v3: 25000, total: 100000 },
+  "BEP 2 AB": { v1: 50000, v2: 30000, v3: 30000, total: 110000 },
+  "TLE G2": { v1: 50000, v2: 25000, v3: 25000, total: 100000 },
+
+  // ENSEIGNEMENT GÉNÉRAL
+  "6EME": { v1: 35000, v2: 20000, v3: 15000, total: 70000 },
+  "5EME": { v1: 35000, v2: 20000, v3: 15000, total: 70000 },
+  "4EME": { v1: 40000, v2: 20000, v3: 20000, total: 80000 },
+  "3EME": { v1: 50000, v2: 20000, v3: 20000, total: 90000 },
+  "2ND AC": { v1: 50000, v2: 25000, v3: 25000, total: 100000 },
+  "1ERE D": { v1: 50000, v2: 25000, v3: 25000, total: 100000 },
+  "1ERE A": { v1: 50000, v2: 25000, v3: 25000, total: 100000 },
+  "TLE D": { v1: 50000, v2: 25000, v3: 25000, total: 100000 },
+  "TLE A": { v1: 50000, v2: 25000, v3: 25000, total: 100000 }
+};
+export const getExactInstallments = (studentClass = "", totalScolarite = 0) => {
+  if (!studentClass) {
+    return {
+      v1: Math.round(totalScolarite * 0.5),
+      v2: Math.round(totalScolarite * 0.25),
+      v3: Math.round(totalScolarite * 0.25)
+    };
+  }
+
+  const clsUpper = String(studentClass).toUpperCase().trim();
+
+  const foundKey = Object.keys(SCHOOL_FEES_CONFIG).find((key) =>
+    clsUpper.includes(key) || key.includes(clsUpper)
+  );
+
+  if (foundKey) {
+    return SCHOOL_FEES_CONFIG[foundKey];
+  }
+
+  return {
+    v1: Math.round(totalScolarite * 0.5),
+    v2: Math.round(totalScolarite * 0.25),
+    v3: Math.round(totalScolarite * 0.25),
+    total: totalScolarite
+  };
+};
 export default function Payments() {
   const [activeTab, setActiveTab] = useState("historique");
   const [students, setStudents] = useState([]);
@@ -1775,9 +1840,16 @@ const totalDossiersCalcule = selectedExamObjects.reduce(
   if (!feeInfo) return null;
 
   const totalScolarite = feeInfo.baseTotal || feeInfo.total || 0;
-  const v1 = feeInfo.installments?.v1 || Math.round(totalScolarite * 0.5);
-  const v2 = feeInfo.installments?.v2 || Math.round(totalScolarite * 0.25);
-  const v3 = feeInfo.installments?.v3 || Math.round(totalScolarite * 0.25);
+
+// Récupération dynamique basée sur la grille tarifaire exacte
+const matchedFees = getExactInstallments(
+  currentStudent?.classe || currentStudent?.class_name,
+  totalScolarite
+);
+
+const v1 = feeInfo.installments?.v1 || matchedFees.v1;
+const v2 = feeInfo.installments?.v2 || matchedFees.v2;
+const v3 = feeInfo.installments?.v3 || matchedFees.v3;
   const dejaPaye = typeof totalDejaPaye !== 'undefined' ? totalDejaPaye : 0;
 
   // Vérification du statut de chaque tranche
