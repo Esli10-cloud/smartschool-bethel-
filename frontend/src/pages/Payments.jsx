@@ -651,7 +651,7 @@ const resteAPayer = Math.max(0, totalAttendu - nouveauCumul);
       academic_year: academicYear,
       is_cancelled: false,
       total_exigible: totalAttendu,
-      cumul_paye: nouveauCumul,      // SERA ÉGAL À cumulInitial SI deductionScolarite = 0
+      cumul_paye: parseInt(totalDejaPaye || 0, 10) + versementActuel,
       reste_a_payer: resteAPayer,    // NE BOUGERA PAS SI deductionScolarite = 0
       paye_inscription: !hasIndependentAnnexSelection && payInscription && !alreadyPaidInscriptionHistory,
       paye_rame: !hasIndependentAnnexSelection && payPaperRame && !alreadyPaidRameHistory,
