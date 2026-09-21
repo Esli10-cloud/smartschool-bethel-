@@ -1842,8 +1842,8 @@ const totalDossiersCalcule = selectedExamObjects.reduce(
 
               <div style={{ marginTop: "8px", paddingTop: "8px", borderTop: "1px solid #cbd5e1", display: "flex", justifyContent: "space-between", fontWeight: "800", fontSize: "14px", background: "#fef2f2", padding: "8px", borderRadius: "6px" }}>
              <span style={{ color: "#991b1b" }}>Reste à payer scolarité :</span>
-<span style={{ color: (fees.total - totalDejaPaye) > 0 ? "#dc2626" : "#16a34a", fontWeight: "bold" }}>
-  {Math.max(0, fees.total - totalDejaPaye).toLocaleString()} CFA
+<span style={{ color: (fees.total + totalInscription + totalRame - totalDejaPaye) > 0 ? "#dc2626" : "#16a34a", fontWeight: "bold" }}>
+  {Math.max(0, fees.total + totalInscription + totalRame - totalDejaPaye).toLocaleString()} CFA
 </span>
               </div>
             </div>
