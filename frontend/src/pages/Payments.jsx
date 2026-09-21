@@ -596,12 +596,23 @@ const totalDossiersCalcule = selectedExamObjects.reduce(
     const deductionScolarite = hasIndependentAnnexSelection ? 0 : versementActuel;
 
     // 3. Calcul du cumul scolarité figé
-    const cumulInitial = parseInt(totalDejaPaye || 0, 10);
-    const totalExigibleInt = parseInt(totalAttendu || 0, 10);
+    // 3. Calcul du cumul scolarité figé
+// On isole la scolarité pure déjà payée en enlevant les frais annexes du cumul
+const fraisAnnexesDejaPayes = activeStudentPayments.reduce((sum, p) => {
+  let annexes = 0;
+  if (p.paye_inscription) annexes += 5000;
+  if (p.paye_rame) annexes += 3500;
+  return sum + annexes;
+}, 0);
 
-    const nouveauCumul = cumulInitial + deductionScolarite;
-    const resteAPayer = Math.max(0, totalExigibleInt - nouveauCumul);
+// Scolarité pure déjà payée (sans les frais annexes)
+const scolaritePurePayee = parseInt(totalDejaPaye || 0, 10) - fraisAnnexesDejaPayes;
 
+// On calcule le cumul en ajoutant le versement du jour
+const nouveauCumul = scolaritePurePayee + deductionScolarite;
+
+// Le reste à payer est calculé uniquement sur la scolarité pure (fees.total)
+const resteAPayer = Math.max(0, (fees?.total || 0) - nouveauCumul);
     // 4. Notes et détails
     const extraDetails = [];
     if (payDortoir) {
