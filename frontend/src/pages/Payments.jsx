@@ -528,14 +528,16 @@ const totalAnnexesPayees = regFeePaid + paperFeePaid;
 const scolaritePurePayee = Math.max(0, totalDejaPaye - totalAnnexesPayees);
 
 // 5. Calcul du vrai reste à payer avant le versement du jour
-const resteActuelAvantPaiement = Math.max(0, (fees?.total || 0) - scolaritePurePayee);
-  // 1. CALCULS POUR L'AFFICHAGE EN TEMPS RÉEL
-  const hasIndependentAnnexSelection = totalTenues > 0 || payDortoir;
+const totalScolaritePure = fees?.total || 0;
+const resteActuelAvantPaiement = Math.max(0, totalScolaritePure - scolaritePurePayee);
 
-  // Un paiement de tenue ou de dortoir ne doit JAMAIS toucher à la scolarité.
-  const deductionScolarite = hasIndependentAnnexSelection ? 0 : versementActuel;
-  const nouveauCumul = totalDejaPaye + deductionScolarite;
-  const resteAPayer = Math.max(0, totalAttendu - nouveauCumul);
+// 6. CALCULS POUR L'AFFICHAGE EN TEMPS RÉEL (SIMULATION DU VERSEMENT)
+const hasIndependentAnnexSelection = totalTenues > 0 || payDortoir;
+
+// Un paiement de tenue ou de dortoir ne doit JAMAIS toucher à la scolarité
+const deductionScolarite = hasIndependentAnnexSelection ? 0 : versementActuel;
+const nouveauCumul = scolaritePurePayee + deductionScolarite;
+const resteAPayer = Math.max(0, totalScolaritePure - nouveauCumul);
 
   // 2. FONCTION DE SOUMISSION DU PAIEMENT
  const handleAddPayment = async (e) => {
