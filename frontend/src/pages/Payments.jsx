@@ -619,8 +619,8 @@ const scolaritePurePayee = parseInt(totalDejaPaye || 0, 10) - fraisAnnexesDejaPa
 // On calcule le cumul en ajoutant le versement du jour
 const nouveauCumul = scolaritePurePayee + deductionScolarite;
 
-// Le reste à payer est calculé uniquement sur la scolarité pure (fees.total)
-const resteAPayer = Math.max(0, (fees?.total || 0) - nouveauCumul);
+// Le reste à payer est calculé sur le total attendu (scolarité + frais du jour)
+const resteAPayer = Math.max(0, totalAttendu - nouveauCumul);
     // 4. Notes et détails
     const extraDetails = [];
     if (payDortoir) {
@@ -650,7 +650,7 @@ const resteAPayer = Math.max(0, (fees?.total || 0) - nouveauCumul);
       mode: paymentMode,
       academic_year: academicYear,
       is_cancelled: false,
-      total_exigible: totalExigibleInt,
+      total_exigible: totalAttendu,
       cumul_paye: nouveauCumul,      // SERA ÉGAL À cumulInitial SI deductionScolarite = 0
       reste_a_payer: resteAPayer,    // NE BOUGERA PAS SI deductionScolarite = 0
       paye_inscription: !hasIndependentAnnexSelection && payInscription && !alreadyPaidInscriptionHistory,
