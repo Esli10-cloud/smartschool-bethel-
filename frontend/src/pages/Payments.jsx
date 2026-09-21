@@ -1850,8 +1850,15 @@ const matchedFees = getExactInstallments(
 const v1 = feeInfo.installments?.v1 || matchedFees.v1;
 const v2 = feeInfo.installments?.v2 || matchedFees.v2;
 const v3 = feeInfo.installments?.v3 || matchedFees.v3;
-  const dejaPaye = typeof totalDejaPaye !== 'undefined' ? totalDejaPaye : 0;
+  
+// Calcule uniquement ce qui a été versé pour la scolarité pure
+const registrationFeePaid = currentStudent?.registration_fee_paid ? 5000 : 0;
+const paperFeePaid = currentStudent?.paper_fee_paid ? 3500 : 0;
+const totalAnnexesPayees = registrationFeePaid + paperFeePaid;
 
+// Le vrai déjà payé en scolarité = Total encaissé moins les frais annexes
+const totalEncaisse = typeof totalDejaPaye !== 'undefined' ? totalDejaPaye : (feeInfo.totalPaid || 0);
+const dejaPaye = Math.max(0, totalEncaisse - totalAnnexesPayees);
   // Vérification du statut de chaque tranche
   const isV1Done = dejaPaye >= v1;
   const isV2Done = dejaPaye >= (v1 + v2);
