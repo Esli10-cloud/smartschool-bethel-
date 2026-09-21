@@ -213,9 +213,19 @@ export const getExactInstallments = (studentClass = "", totalScolariteFixe = 0) 
 
   const clsUpper = String(studentClass).toUpperCase().trim();
 
-  const foundKey = Object.keys(SCHOOL_FEES_CONFIG).find((key) =>
-    clsUpper.includes(key) || key.includes(clsUpper)
-  );
+    // 1. On cherche d'abord par mots-clés spécifiques pour éviter les erreurs de nommage
+  let foundKey = null;
+  if (clsUpper.includes("BEP") && clsUpper.includes("MVA")) foundKey = "BEP 1 MVA";
+  else if (clsUpper.includes("CAP") && clsUpper.includes("MVA")) foundKey = "CAP MVA";
+  else if (clsUpper.includes("BEP") && clsUpper.includes("GC")) foundKey = "BEP 1 GC";
+  else if (clsUpper.includes("BEP") && clsUpper.includes("EL")) foundKey = "BEP 1 EL";
+
+  // 2. Si aucun mot-clé spécifique n'est trouvé, on utilise l'ancienne méthode de recherche
+  if (!foundKey) {
+    foundKey = Object.keys(SCHOOL_FEES_CONFIG).find((key) =>
+      clsUpper.includes(key) || key.includes(clsUpper)
+    );
+  }
 
   if (foundKey) {
     return SCHOOL_FEES_CONFIG[foundKey];
@@ -471,6 +481,7 @@ export default function Payments() {
         tr1 = 100000; tr2 = 35000; tr3 = 30000; baseTotal = 165000; 
       }
       else if (cls.includes("CAP") || cls.includes("AP")) { tr1 = 100000; tr2 = 25000; tr3 = 25000; baseTotal = 150000; }
+            else if (cls.includes("MVA") && cls.includes("BEP")) { tr1 = 100000; tr2 = 35000; tr3 = 30000; baseTotal = 165000; }
       else if (cls.includes("BAC-PRO") && (cls.includes("ÉLECTRO") || cls.includes("ELECTRO"))) { tr1 = 140000; tr2 = 40000; tr3 = 40000; baseTotal = 220000; }
       else if (cls.includes("GÉNIE CIVIL") || cls.includes("GENIE CIVIL")) {
         if (cls.includes("TLE")) { tr1 = 110000; tr2 = 50000; tr3 = 50000; baseTotal = 210000; }
