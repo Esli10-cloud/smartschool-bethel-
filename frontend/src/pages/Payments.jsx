@@ -1862,7 +1862,7 @@ const resteAPayer = Math.max(0, (fees?.total || 0) - nouveauCumul);
               <div style={{ marginTop: "8px", paddingTop: "8px", borderTop: "1px solid #cbd5e1", display: "flex", justifyContent: "space-between", fontWeight: "800", fontSize: "14px", background: "#fef2f2", padding: "8px", borderRadius: "6px" }}>
              <span style={{ color: "#991b1b" }}>Reste à payer scolarité :</span>
 <span style={{ color: (fees.total - scolaritePurePayee) > 0 ? "#dc2626" : "#16a34a", fontWeight: "bold" }}>
-  {Math.max(0, fees.total - scolaritePurePayee).toLocaleString()} CFA
+  {Math.max(0, fees.total + totalInscription + totalRame - scolaritePurePayee).toLocaleString()} CFA
 </span>
               </div>
             </div>
