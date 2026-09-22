@@ -1015,12 +1015,12 @@ const resteAPayer = Math.max(0, totalAttendu - nouveauCumul);
   );
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#f8fafc" }}>
+        <div style={{ display: "flex", minHeight: "100vh", background: "#f8fafc" }}>
       <style>{`
         @media print {
           @page {
-            size: A4;
-            margin: 10mm;
+            size: A5 portrait;
+            margin: 5mm;
           }
           body * {
             visibility: hidden;
@@ -1032,28 +1032,34 @@ const resteAPayer = Math.max(0, totalAttendu - nouveauCumul);
             position: absolute;
             left: 0;
             top: 0;
-            width: 100%;
-            margin: 0;
+            width: 100% !important;
+            max-width: 140mm !important; /* Largeur max pour le A5 */
+            margin: 0 auto;
             padding: 0;
             background: white !important;
+            transform: none !important; /* Empêche la réduction automatique */
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
           }
           #caisse-print {
             position: absolute;
             left: 0;
             top: 0;
-            width: 100%;
+            width: 100% !important;
             margin: 0;
             padding: 0;
             background: white !important;
+            transform: none !important;
           }
           #impayes-print {
             position: absolute;
             left: 0;
             top: 0;
-            width: 100%;
+            width: 100% !important;
             margin: 0;
             padding: 0;
             background: white !important;
+            transform: none !important;
           }
           .no-print {
             display: none !important;
