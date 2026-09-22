@@ -1032,12 +1032,12 @@ const resteAPayer = Math.max(0, totalAttendu - nouveauCumul);
             position: absolute;
             left: 0;
             top: 0;
-            width: 100% !important;           /* Prend toute la largeur */
-            max-width: 100% !important;       /* Enlève la limite de 140mm */
-            margin: 0 auto;
-            padding: 0;
+            width: 100% !important;
+            max-width: 140mm !important;       /* Largeur fixe pour le A5 */
+            margin: 0 auto !important;         /* Centre le reçu */
+            padding: 10px;                     /* Évite que le texte colle aux bords */
             background: white !important;
-            transform: scale(1) !important;   /* Force la taille réelle */
+            transform: none !important;       
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
           }
