@@ -1028,14 +1028,15 @@ const resteAPayer = Math.max(0, totalAttendu - nouveauCumul);
           #receipt-a5, #receipt-a5 *, #caisse-print, #caisse-print *, #impayes-print, #impayes-print * {
             visibility: visible;
           }
-                    #receipt-a5 {
+                       #receipt-a5 {
             position: absolute;
             left: 0;
             top: 0;
-            width: 100% !important;
-            max-width: 140mm !important;       /* Largeur fixe pour le A5 */
-            margin: 0 auto !important;         /* Centre le reçu */
-            padding: 10px;                     /* Évite que le texte colle aux bords */
+            width: 100% !important;           /* Prend toute la largeur */
+            max-width: 100% !important;       /* Enlève la limite de 140mm */
+            box-sizing: border-box !important; /* Inclut le padding dans la largeur */
+            margin: 0 auto;
+            padding: 5mm 10px !important;     /* Un peu d'espace pour ne pas couper les bords */
             background: white !important;
             transform: none !important;       
             -webkit-print-color-adjust: exact;
@@ -2079,7 +2080,7 @@ const dejaPaye = Math.max(0, totalEncaisse - totalAnnexesPayees);
 
       {selectedReceipt && (
         <Modal isOpen={receiptModalOpen} onClose={() => setReceiptModalOpen(false)} title="">
-          <div id="receipt-a5" style={{ padding: "15px", color: "#0f172a", fontFamily: "sans-serif", maxWidth: "650px", margin: "0 auto", background: "white" }}>
+          <div id="receipt-a5" style={{ padding: "15px", color: "#0f172a", fontFamily: "sans-serif", maxWidth: "100%", margin: "0 auto", background: "white" }}>
             <OfficialHeader />
 
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
