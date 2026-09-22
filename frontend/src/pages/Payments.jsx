@@ -1028,16 +1028,16 @@ const resteAPayer = Math.max(0, totalAttendu - nouveauCumul);
           #receipt-a5, #receipt-a5 *, #caisse-print, #caisse-print *, #impayes-print, #impayes-print * {
             visibility: visible;
           }
-          #receipt-a5 {
+                    #receipt-a5 {
             position: absolute;
             left: 0;
             top: 0;
-            width: 100% !important;
-            max-width: 140mm !important; /* Largeur max pour le A5 */
+            width: 100% !important;           /* Prend toute la largeur */
+            max-width: 100% !important;       /* Enlève la limite de 140mm */
             margin: 0 auto;
             padding: 0;
             background: white !important;
-            transform: none !important; /* Empêche la réduction automatique */
+            transform: scale(1) !important;   /* Force la taille réelle */
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
           }
