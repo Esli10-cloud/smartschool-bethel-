@@ -245,6 +245,7 @@ export default function Payments() {
   const [auditLogs, setAuditLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Année scolaire active : 2026-2027 par défaut
   const [academicYear, setAcademicYear] = useState("2026-2027");
@@ -561,15 +562,22 @@ const deductionScolarite = hasIndependentAnnexSelection ? 0 : versementActuel;
 const nouveauCumul = scolaritePurePayee + deductionScolarite;
 const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRame) - nouveauCumul);
 
-  // 2. FONCTION DE SOUMISSION DU PAIEMENT
- const handleAddPayment = async (e) => {
+    // 2. FONCTION DE SOUMISSION DU PAIEMENT
+  const handleAddPayment = async (e) => {
     e.preventDefault();
+
+    // ✅ SÉCURITÉ 1 : Si une requête est déjà en cours, on ne fait rien
+    if (isSubmitting) return;
+
     const versementActuel = parseInt(amount, 10) || 0;
 
     if (!selectedStudentId || versementActuel <= 0) {
       alert("Veuillez sélectionner un élève et saisir un montant valide.");
       return;
     }
+
+    // ✅ SÉCURITÉ 2 : On bloque le bouton immédiatement
+    setIsSubmitting(true);
 
     // 1. Calcul forcé des tenues
     let totalTenuesCalcule = 0;
@@ -589,49 +597,38 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
     }
 
     // 2. Détection d'un paiement indépendant (tenues et/ou dortoir)
-    // 1. Récupération sécurisée des options pour la classe
-const currentStudentClass = selectedStudent?.classe || selectedStudent?.class_name || "";
-const currentExamOptions = getExamOptionsByClass(currentStudentClass);
+    const currentStudentClass = selectedStudent?.classe || selectedStudent?.class_name || "";
+    const currentExamOptions = getExamOptionsByClass(currentStudentClass);
 
-// 2. Filtrage tolérant (supporte aussi bien les ID/Textes que les Objets)
-const selectedExamObjects = currentExamOptions.filter((exam) =>
-  examSelections.some((sel) => 
-    typeof sel === "object" ? sel?.label === exam.label || sel?.id === exam.id : sel === exam.label || sel === exam.id
-  )
-);
+    const selectedExamObjects = currentExamOptions.filter((exam) =>
+      examSelections.some((sel) => 
+        typeof sel === "object" ? sel?.label === exam.label || sel?.id === exam.id : sel === exam.label || sel === exam.id
+      )
+    );
 
-// 3. Calculs sécurisés pour le reçu et le total
-const selectedExamDetails = selectedExamObjects.map(
-  (exam) => `${exam.label} : ${(exam.price || 0).toLocaleString()} CFA`
-);
-const totalDossiersCalcule = selectedExamObjects.reduce(
-  (sum, exam) => sum + (exam.price || 0), 0
-);
+    const selectedExamDetails = selectedExamObjects.map(
+      (exam) => `${exam.label} : ${(exam.price || 0).toLocaleString()} CFA`
+    );
+    const totalDossiersCalcule = selectedExamObjects.reduce(
+      (sum, exam) => sum + (exam.price || 0), 0
+    );
     const hasIndependentAnnexSelection =
       totalTenuesCalcule > 0 || payDortoir || totalDossiersCalcule > 0;
 
-    // VERROU DE SÉCURITÉ :
-    // Dès qu'une tenue ou le dortoir est sélectionné, le versement
-    // est entièrement indépendant et ne réduit JAMAIS la scolarité.
     const deductionScolarite = hasIndependentAnnexSelection ? 0 : versementActuel;
 
     // 3. Calcul du cumul scolarité figé
-// On isole la scolarité pure déjà payée en enlevant les frais annexes du cumul
-const fraisAnnexesDejaPayes = activeStudentPayments.reduce((sum, p) => {
-  let annexes = 0;
-  if (p.paye_inscription) annexes += 5000;
-  if (p.paye_rame) annexes += 3500;
-  return sum + annexes;
-}, 0);
+    const fraisAnnexesDejaPayes = activeStudentPayments.reduce((sum, p) => {
+      let annexes = 0;
+      if (p.paye_inscription) annexes += 5000;
+      if (p.paye_rame) annexes += 3500;
+      return sum + annexes;
+    }, 0);
 
-// Scolarité pure déjà payée (sans les frais annexes)
-const scolaritePurePayee = parseInt(totalDejaPaye || 0, 10) - fraisAnnexesDejaPayes;
+    const scolaritePurePayee = parseInt(totalDejaPaye || 0, 10) - fraisAnnexesDejaPayes;
+    const nouveauCumul = scolaritePurePayee + deductionScolarite;
+    const resteAPayer = Math.max(0, totalAttendu - nouveauCumul);
 
-// On calcule le cumul en ajoutant le versement du jour
-const nouveauCumul = scolaritePurePayee + deductionScolarite;
-
-// Le reste à payer est calculé sur le total attendu (scolarité + frais du jour)
-const resteAPayer = Math.max(0, totalAttendu - nouveauCumul);
     // 4. Notes et détails
     const extraDetails = [];
     if (payDortoir) {
@@ -663,12 +660,13 @@ const resteAPayer = Math.max(0, totalAttendu - nouveauCumul);
       is_cancelled: false,
       total_exigible: totalAttendu,
       cumul_paye: parseInt(totalDejaPaye || 0, 10) + versementActuel,
-      reste_a_payer: resteAPayer,    // NE BOUGERA PAS SI deductionScolarite = 0
+      reste_a_payer: resteAPayer,
       paye_inscription: !hasIndependentAnnexSelection && payInscription && !alreadyPaidInscriptionHistory,
       paye_rame: !hasIndependentAnnexSelection && payPaperRame && !alreadyPaidRameHistory,
       paye_dortoir: payDortoir && !alreadyPaidDortoirHistory,
       notes: finalNotes,
-    }; 
+    };
+
     try {
       const { data, error } = await supabase
         .from("payments")
@@ -690,7 +688,7 @@ const resteAPayer = Math.max(0, totalAttendu - nouveauCumul);
         setPayDortoir(false);
         setExamSelections([]);
         setUniformQuantities({ tee_shirt: 0, lacoste: 0, pagne_chemise: 0, tissu: 0 });
-        
+
         await recordAuditLog(
           "NOUVEAU_VERSEMENT", 
           `Encaissement de ${versementActuel.toLocaleString()} CFA (N° Transaction ${data[0].id}) par ${currentUser.nom} pour l'élève ID ${selectedStudentId} [Année: ${academicYear}]`
@@ -704,6 +702,9 @@ const resteAPayer = Math.max(0, totalAttendu - nouveauCumul);
       }
     } catch (error) {
       setErrorMessage("Erreur lors de l'enregistrement du paiement : " + error.message);
+    } finally {
+      // ✅ SÉCURITÉ 3 : On débloque le bouton, peu importe le résultat
+      setIsSubmitting(false);
     }
   };
 
@@ -2045,9 +2046,30 @@ const dejaPaye = Math.max(0, totalEncaisse - totalAnnexesPayees);
             <textarea placeholder="Observations..." value={paymentNote} onChange={(e) => setPaymentNote(e.target.value)} style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1", minHeight: "60px" }} />
           </div>
 
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
-            <button type="button" onClick={() => setIsModalOpen(false)} style={{ padding: "8px 16px", borderRadius: "6px", border: "1px solid #cbd5e1", background: "white", cursor: "pointer" }}>Annuler</button>
-            <button type="submit" style={{ padding: "8px 18px", borderRadius: "6px", border: "none", background: "#2563eb", color: "white", fontWeight: "600", cursor: "pointer" }}>Enregistrer</button>
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "20px" }}>
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(false)}
+              style={{ padding: "8px 16px", borderRadius: "6px", border: "1px solid #cbd5e1", background: "white", cursor: "pointer" }}
+            >
+              Annuler
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              style={{
+                padding: "8px 18px",
+                borderRadius: "6px",
+                border: "none",
+                background: isSubmitting ? "#94a3b8" : "#2563eb",
+                color: "white",
+                fontWeight: "600",
+                cursor: isSubmitting ? "not-allowed" : "pointer",
+                opacity: isSubmitting ? 0.7 : 1
+              }}
+            >
+              {isSubmitting ? "Enregistrement..." : "Enregistrer"}
+            </button>
           </div>
         </form>
       </Modal>
