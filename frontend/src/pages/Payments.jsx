@@ -256,6 +256,10 @@ export default function Payments() {
     nom: "Utilisateur",
     role: "secretaire"
   });
+  const getAgentNameFromNotes = (notes = "") => {
+  const match = notes.match(/Agent:\s*([^|\]]+)/i);
+  return match ? match[1].trim() : "Inconnu";
+};
 
   // Recherche & Filtres Historique
   const [searchTermHistory, setSearchTermHistory] = useState("");
@@ -1591,7 +1595,7 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
                             <td style={{ padding: "10px 14px", color: "#2563eb", fontWeight: "600" }}>{p.students?.matricule}</td>
                             <td style={{ padding: "10px 14px", fontWeight: "600", color: "#1e293b" }}>{nomFormatted} {prenomFormatted}</td>
                             <td style={{ padding: "10px 14px" }}>{p.mode || "Espèces"}</td>
-                            <td style={{ padding: "10px 14px", fontWeight: "600", color: "#475569" }}>{currentUser.nom || "Admin"}</td>
+                            <td style={{ padding: "10px 14px", fontWeight: "600", color: "#475569" }}>{getAgentNameFromNotes(p.notes)}</td>
                             <td style={{ padding: "10px 14px", textAlign: "right", color: "#16a34a", fontWeight: "700" }}>{parseInt(p.amount || p.montant || 0, 10).toLocaleString()} CFA</td>
                           </tr>
                         );
