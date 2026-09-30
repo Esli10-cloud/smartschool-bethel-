@@ -186,7 +186,7 @@ export default function Students() {
   // Liste unique des classes pour le filtre
   const classesList = ["Toutes", ...new Set(students.map(s => s.classe).filter(Boolean))];
 
-  const filteredStudents = students.filter((s) => {
+ const filteredStudents = students.filter((s) => {
     const matchSearch =
       s.nom?.toLowerCase().includes(search.toLowerCase()) ||
       s.prenom?.toLowerCase().includes(search.toLowerCase()) ||
@@ -196,8 +196,21 @@ export default function Students() {
     const matchClass = selectedClassFilter === "Toutes" || s.classe === selectedClassFilter;
 
     return matchSearch && matchClass;
+  }).sort((a, b) => {
+    // 1. On trie d'abord par classe
+    const classA = (a.classe || "").toUpperCase();
+    const classB = (b.classe || "").toUpperCase();
+    if (classA < classB) return -1;
+    if (classA > classB) return 1;
+    
+    // 2. Si les classes sont identiques, on trie par nom de famille
+    const nomA = (a.nom || "").toUpperCase();
+    const nomB = (b.nom || "").toUpperCase();
+    if (nomA < nomB) return -1;
+    if (nomA > nomB) return 1;
+    
+    return 0;
   });
-
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "#f8fafc" }}>
       
