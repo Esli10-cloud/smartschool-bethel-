@@ -337,7 +337,7 @@ export default function Students() {
           </div>
 
           {/* Tableau des élèves */}
-          <div style={{ background: "white", borderRadius: "12px", border: "1px solid #e2e8f0", overflow: "hidden" }}>
+          <div className="no-print" style={{ background: "white", borderRadius: "12px", border: "1px solid #e2e8f0", overflow: "hidden" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ background: "#2563eb", color: "white", textAlign: "left", fontSize: "14px" }}>
@@ -366,7 +366,7 @@ export default function Students() {
                     </td>
                   </tr>
                                 ) : (
-                                studentsForPrint.map((s, index) => {
+                                                filteredStudents.map((s, index) => {
                   const previousStudent = index > 0 ? filteredStudents[index - 1] : null;
                   const isNewClass = !previousStudent || previousStudent.classe !== s.classe;
 
@@ -442,7 +442,57 @@ export default function Students() {
             </tbody>
             </table>
             </div>
+      {/* TABLEAU POUR L'IMPRESSION UNIQUEMENT (trié par classe) */}
+      <div className="print-only" style={{ display: "none" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead>
+            <tr style={{ background: "#2563eb", color: "white", textAlign: "left", fontSize: "14px" }}>
+              <th style={{ padding: "14px 20px" }}>Matricule</th>
+              <th style={{ padding: "14px 20px" }}>Nom & Prénom</th>
+              <th style={{ padding: "14px 20px" }}>Sexe</th>
+              <th style={{ padding: "14px 20px" }}>Classe & Filière</th>
+              <th style={{ padding: "14px 20px" }}>Statut</th>
+              <th style={{ padding: "14px 20px" }}>Contact Élève</th>
+              <th style={{ padding: "14px 20px" }}>Parent / Tuteur</th>
+              <th style={{ padding: "14px 20px" }}>Contact Parent</th>
+            </tr>
+          </thead>
+          <tbody>
+            {studentsForPrint.map((s, index) => {
+              const previousStudent = index > 0 ? studentsForPrint[index - 1] : null;
+              const isNewClass = !previousStudent || previousStudent.classe !== s.classe;
 
+              return (
+                <React.Fragment key={s.id}>
+                  {isNewClass && (
+                    <tr style={{ pageBreakBefore: 'always', background: "#e2e8f0" }}>
+                      <td colSpan="8" style={{ padding: "12px 20px", fontWeight: "bold", fontSize: "14px", color: "#1e293b", textTransform: "uppercase" }}>
+                        📚 CLASSE : {s.classe || "Sans classe"}
+                      </td>
+                    </tr>
+                  )}
+                  <tr style={{ borderBottom: "1px solid #f1f5f9", fontSize: "14px" }}>
+                    <td style={{ padding: "14px 20px", fontWeight: "600", color: "#2563eb" }}>{s.matricule}</td>
+                    <td style={{ padding: "14px 20px", fontWeight: "600" }}>{s.nom} {s.prenom}</td>
+                    <td style={{ padding: "14px 20px" }}>{s.sexe === "Masculin" ? "M" : "F"}</td>
+                    <td style={{ padding: "14px 20px" }}>{s.classe}</td>
+                    <td style={{ padding: "14px 20px" }}>
+                      {s.is_affecte_etat ? (
+                        <span style={{ background: "#dbeafe", color: "#1e40af", padding: "4px 8px", borderRadius: "6px", fontSize: "12px", fontWeight: "600" }}>Affecté État</span>
+                      ) : (
+                        <span style={{ background: "#f1f5f9", color: "#475569", padding: "4px 8px", borderRadius: "6px", fontSize: "12px" }}>Standard</span>
+                      )}
+                    </td>
+                    <td style={{ padding: "14px 20px", color: "#475569" }}>{s.telephone || "-"}</td>
+                    <td style={{ padding: "14px 20px" }}>{s.parent_nom_prenom || "-"}</td>
+                    <td style={{ padding: "14px 20px", color: "#475569" }}>{s.telephone_parent || "-"}</td>
+                  </tr>
+                </React.Fragment>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
       <Modal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
