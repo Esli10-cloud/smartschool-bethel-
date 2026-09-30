@@ -186,7 +186,7 @@ export default function Students() {
   // Liste unique des classes pour le filtre
   const classesList = ["Toutes", ...new Set(students.map(s => s.classe).filter(Boolean))];
 
- const filteredStudents = students.filter((s) => {
+   const filteredStudents = students.filter((s) => {
     const matchSearch =
       s.nom?.toLowerCase().includes(search.toLowerCase()) ||
       s.prenom?.toLowerCase().includes(search.toLowerCase()) ||
