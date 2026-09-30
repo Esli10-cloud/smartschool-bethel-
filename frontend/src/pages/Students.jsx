@@ -195,15 +195,16 @@ export default function Students() {
 
     const matchClass = selectedClassFilter === "Toutes" || s.classe === selectedClassFilter;
 
-    return matchSearch && matchClass;
-  }).sort((a, b) => {
-    // 1. On trie d'abord par classe
+        return matchSearch && matchClass;
+    });
+
+  // Liste pour l'impression (triée par classe puis par nom)
+  const studentsForPrint = [...filteredStudents].sort((a, b) => {
     const classA = (a.classe || "").toUpperCase();
     const classB = (b.classe || "").toUpperCase();
     if (classA < classB) return -1;
     if (classA > classB) return 1;
     
-    // 2. Si les classes sont identiques, on trie par nom de famille
     const nomA = (a.nom || "").toUpperCase();
     const nomB = (b.nom || "").toUpperCase();
     if (nomA < nomB) return -1;
@@ -365,7 +366,7 @@ export default function Students() {
                     </td>
                   </tr>
                                 ) : (
-                filteredStudents.map((s, index) => {
+                                studentsForPrint.map((s, index) => {
                   const previousStudent = index > 0 ? filteredStudents[index - 1] : null;
                   const isNewClass = !previousStudent || previousStudent.classe !== s.classe;
 
