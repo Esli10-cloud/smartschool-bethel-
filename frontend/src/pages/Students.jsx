@@ -364,71 +364,83 @@ export default function Students() {
                       Aucun élève trouvé.
                     </td>
                   </tr>
-                ) : (
-                  filteredStudents.map((s) => (
-                    <tr key={s.id} style={{ borderBottom: "1px solid #f1f5f9", fontSize: "14px" }}>
-                      <td style={{ padding: "14px 20px", fontWeight: "600", color: "#2563eb" }}>{s.matricule}</td>
-                      <td style={{ padding: "14px 20px", fontWeight: "600" }}>{s.nom} {s.prenom}</td>
-                      <td style={{ padding: "14px 20px" }}>{s.sexe === "Masculin" ? "M" : "F"}</td>
-                      <td style={{ padding: "14px 20px" }}>{s.classe}</td>
-                      <td style={{ padding: "14px 20px" }}>
-                        {s.is_affecte_etat ? (
-                          <span style={{ background: "#dbeafe", color: "#1e40af", padding: "4px 8px", borderRadius: "6px", fontSize: "12px", fontWeight: "600" }}>
-                            Affecté État
-                          </span>
-                        ) : (
-                          <span style={{ background: "#f1f5f9", color: "#475569", padding: "4px 8px", borderRadius: "6px", fontSize: "12px" }}>
-                            Standard
-                          </span>
-                        )}
-                      </td>
-                      <td style={{ padding: "14px 20px", color: "#475569" }}>{s.telephone || "-"}</td>
-                      <td style={{ padding: "14px 20px" }}>{s.parent_nom_prenom || "-"}</td>
-                      <td style={{ padding: "14px 20px", color: "#475569" }}>{s.telephone_parent || "-"}</td>
-                      <td className="no-print" style={{ padding: "14px 20px", textAlign: "right" }}>
-                        <div style={{ display: "flex", justifyContent: "flex-end", gap: "6px" }}>
-                          <button
-                            onClick={() => handleOpenEditModal(s)}
-                            title="Modifier l'élève"
-                            style={{
-                              background: "#eff6ff",
-                              color: "#2563eb",
-                              border: "1px solid #bfdbfe",
-                              padding: "6px 10px",
-                              borderRadius: "6px",
-                              cursor: "pointer",
-                              display: "inline-flex",
-                              alignItems: "center",
-                            }}
-                          >
-                            <Edit size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(s.id)}
-                            title="Supprimer l'élève"
-                            style={{
-                              background: "#fee2e2",
-                              color: "#dc2626",
-                              border: "none",
-                              padding: "6px 10px",
-                              borderRadius: "6px",
-                              cursor: "pointer",
-                              display: "inline-flex",
-                              alignItems: "center",
-                            }}
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
+                                ) : (
+                filteredStudents.map((s, index) => {
+                  const previousStudent = index > 0 ? filteredStudents[index - 1] : null;
+                  const isNewClass = !previousStudent || previousStudent.classe !== s.classe;
+
+                  return (
+                    <React.Fragment key={s.id}>
+                      {isNewClass && (
+                        <tr 
+                          style={{ 
+                            pageBreakBefore: 'always',
+                            background: "#e2e8f0"
+                          }}
+                        >
+                          <td colSpan="9" style={{ padding: "12px 20px", fontWeight: "bold", fontSize: "14px", color: "#1e293b", textTransform: "uppercase" }}>
+                            📚 CLASSE : {s.classe || "Sans classe"}
+                          </td>
+                        </tr>
+                      )}
+                      <tr style={{ borderBottom: "1px solid #f1f5f9", fontSize: "14px" }}>
+                        <td style={{ padding: "14px 20px", fontWeight: "600", color: "#2563eb" }}>{s.matricule}</td>
+                        <td style={{ padding: "14px 20px", fontWeight: "600" }}>{s.nom} {s.prenom}</td>
+                        <td style={{ padding: "14px 20px" }}>{s.sexe === "Masculin" ? "M" : "F"}</td>
+                        <td style={{ padding: "14px 20px" }}>{s.classe}</td>
+                        <td style={{ padding: "14px 20px" }}>
+                          {s.is_affecte_etat ? (
+                            <span style={{ background: "#dbeafe", color: "#1e40af", padding: "4px 8px", borderRadius: "6px", fontSize: "12px", fontWeight: "600" }}>Affecté État</span>
+                          ) : (
+                            <span style={{ background: "#f1f5f9", color: "#475569", padding: "4px 8px", borderRadius: "6px", fontSize: "12px" }}>Standard</span>
+                          )}
+                        </td>
+                        <td style={{ padding: "14px 20px", color: "#475569" }}>{s.telephone || "-"}</td>
+                        <td style={{ padding: "14px 20px" }}>{s.parent_nom_prenom || "-"}</td>
+                        <td style={{ padding: "14px 20px", color: "#475569" }}>{s.telephone_parent || "-"}</td>
+                        <td className="no-print" style={{ padding: "14px 20px", textAlign: "right" }}>
+                          <div style={{ display: "flex", justifyContent: "flex-end", gap: "6px" }}>
+                            <button
+                              onClick={() => handleOpenEditModal(s)}
+                              title="Modifier l'élève"
+                              style={{
+                                background: "#eff6ff",
+                                color: "#2563eb",
+                                border: "1px solid #bfdbfe",
+                                padding: "6px 10px",
+                                borderRadius: "6px",
+                                cursor: "pointer",
+                                display: "inline-flex",
+                                alignItems: "center",
+                              }}
+                            >
+                              <Edit size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(s.id)}
+                              title="Supprimer l'élève"
+                              style={{
+                                background: "#fee2e2",
+                                color: "#dc2626",
+                                border: "none",
+                                padding: "6px 10px",
+                                borderRadius: "6px",
+                                cursor: "pointer",
+                                display: "inline-flex",
+                                alignItems: "center",
+                              }}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                                     </React.Fragment>
+                  );
+                }) ) }
+            </tbody>
             </table>
-          </div>
-        </div>
-      </div>
+            </div>
 
       <Modal 
         isOpen={isModalOpen} 
@@ -652,6 +664,8 @@ export default function Students() {
           th { background-color: #f1f5f9 !important; color: black !important; }
         }
       `}</style>
+    </div>
+    </div>
     </div>
   );
 }
