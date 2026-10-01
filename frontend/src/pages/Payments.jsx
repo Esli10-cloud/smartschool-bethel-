@@ -1022,10 +1022,10 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
   return (
         <div style={{ display: "flex", minHeight: "100vh", background: "#f8fafc" }}>
       <style>{`
-        @media print {
+               @media print {
           @page {
             size: A5 portrait;
-            margin: 5mm;
+            margin: 3mm;
           }
           body * {
             visibility: hidden;
@@ -1033,19 +1033,27 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
           #receipt-a5, #receipt-a5 *, #caisse-print, #caisse-print *, #impayes-print, #impayes-print * {
             visibility: visible;
           }
-                       #receipt-a5 {
+          #receipt-a5 {
             position: absolute;
             left: 0;
             top: 0;
-            width: 100% !important;           /* Prend toute la largeur */
-            max-width: 100% !important;       /* Enlève la limite de 140mm */
-            box-sizing: border-box !important; /* Inclut le padding dans la largeur */
-            margin: 0 auto;
-            padding: 5mm 10px !important;     /* Un peu d'espace pour ne pas couper les bords */
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+            margin: 0 auto !important;
+            padding: 0 !important;
             background: white !important;
-            transform: none !important;       
+            transform: none !important;
+            font-size: 11px !important;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
+            /* 🔒 LES 3 RÈGLES MAGIQUES POUR UNE SEULE PAGE */
+            page-break-inside: avoid !important;
+            page-break-after: avoid !important;
+            page-break-before: avoid !important;
+          }
+          #receipt-a5 table, #receipt-a5 tr {
+            page-break-inside: avoid !important;
           }
           #caisse-print {
             position: absolute;
@@ -1070,9 +1078,12 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
           .no-print {
             display: none !important;
           }
+          html, body {
+            height: auto !important;
+            overflow: hidden !important;
+          }
         }
       `}</style>
-
       <Sidebar />
 
       <div style={{ flex: 1 }}>
