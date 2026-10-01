@@ -1021,8 +1021,8 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
 
   return (
         <div style={{ display: "flex", minHeight: "100vh", background: "#f8fafc" }}>
-      <style>{`
-               @media print {
+           <style>{`
+        @media print {
           @page {
             size: A5 portrait;
             margin: 3mm;
@@ -1039,6 +1039,7 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
             top: 0;
             width: 100% !important;
             max-width: 100% !important;
+            max-height: 100vh !important;  /* ✅ NOUVEAU : Force à ne pas dépasser une page */
             box-sizing: border-box !important;
             margin: 0 auto !important;
             padding: 0 !important;
@@ -1047,10 +1048,10 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
             font-size: 11px !important;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
-            /* 🔒 LES 3 RÈGLES MAGIQUES POUR UNE SEULE PAGE */
             page-break-inside: avoid !important;
             page-break-after: avoid !important;
             page-break-before: avoid !important;
+            overflow: hidden !important;   /* ✅ NOUVEAU : Cache tout débordement */
           }
           #receipt-a5 table, #receipt-a5 tr {
             page-break-inside: avoid !important;
@@ -1081,6 +1082,8 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
           html, body {
             height: auto !important;
             overflow: hidden !important;
+            margin: 0 !important;
+            padding: 0 !important;
           }
         }
       `}</style>
