@@ -29,7 +29,12 @@ export default function Students() {
   const [telephone, setTelephone] = useState("");
   const [parentNomPrenom, setParentNomPrenom] = useState("");
   const [parentTelephone, setParentTelephone] = useState("");
-
+  // ✅ NOUVEAU : Suggestions automatiques
+  const [suggestionsNoms, setSuggestionsNoms] = useState([]);
+  const [suggestionsPrenoms, setSuggestionsPrenoms] = useState([]);
+  const [suggestionsTelephones, setSuggestionsTelephones] = useState([]);
+  const [suggestionsParents, setSuggestionsParents] = useState([]);
+  const [suggestionsTelephonesParents, setSuggestionsTelephonesParents] = useState([]);
   const fetchStudents = async () => {
     setLoading(true);
     const { data, error } = await supabase
@@ -46,7 +51,37 @@ export default function Students() {
   useEffect(() => {
     fetchStudents();
   }, []);
+  // ✅ NOUVEAU : Charger les suggestions depuis la base de données
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      const { data } = await supabase
+        .from("students")
+        .select("nom, prenom, telephone, parent_nom_prenom, telephone_parent");
 
+      if (data) {
+        // Noms uniques (on enlève les doublons et on trie)
+        const noms = [...new Set(data.map(s => s.nom).filter(Boolean))].sort();
+        setSuggestionsNoms(noms);
+
+        // Prénoms uniques
+        const prenoms = [...new Set(data.map(s => s.prenom).filter(Boolean))].sort();
+        setSuggestionsPrenoms(prenoms);
+
+        // Téléphones élèves uniques (on enlève le +226 pour l'affichage)
+        const telephones = [...new Set(data.map(s => (s.telephone || "").replace(/^\+226\s?/, "")).filter(Boolean))].sort();
+        setSuggestionsTelephones(telephones);
+
+        // Noms de parents uniques
+        const parents = [...new Set(data.map(s => s.parent_nom_prenom).filter(Boolean))].sort();
+        setSuggestionsParents(parents);
+
+        // Téléphones parents uniques
+        const telephonesParents = [...new Set(data.map(s => (s.telephone_parent || "").replace(/^\+226\s?/, "")).filter(Boolean))].sort();
+        setSuggestionsTelephonesParents(telephonesParents);
+      }
+    };
+    fetchSuggestions();
+  }, []);
   const resetForm = () => {
     setNom("");
     setPrenom("");
@@ -502,26 +537,34 @@ export default function Students() {
           
           <div style={{ marginBottom: "14px" }}>
             <label style={{ display: "block", fontSize: "13px", fontWeight: "600", marginBottom: "6px" }}>Nom *</label>
-            <input
+                     <input
               type="text"
               placeholder="Ex : OUEDRAOGO"
               value={nom}
               onChange={(e) => setNom(e.target.value)}
+              list="suggestions-noms"
               required
               style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1", background: "white", color: "black" }}
             />
+            <datalist id="suggestions-noms">
+              {suggestionsNoms.map((n, i) => <option key={i} value={n} />)}
+            </datalist>
           </div>
 
           <div style={{ marginBottom: "14px" }}>
             <label style={{ display: "block", fontSize: "13px", fontWeight: "600", marginBottom: "6px" }}>Prénom *</label>
-            <input
+                 <input
               type="text"
               placeholder="Ex : Ali"
               value={prenom}
               onChange={(e) => setPrenom(e.target.value)}
+              list="suggestions-prenoms"
               required
               style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1", background: "white", color: "black" }}
             />
+            <datalist id="suggestions-prenoms">
+              {suggestionsPrenoms.map((p, i) => <option key={i} value={p} />)}
+            </datalist>
           </div>
 
           <div style={{ marginBottom: "14px" }}>
@@ -637,25 +680,33 @@ export default function Students() {
               <span style={{ padding: "10px 12px", background: "#e2e8f0", fontWeight: "600", fontSize: "13px", color: "#334155", borderRight: "1px solid #cbd5e1" }}>
                 +226
               </span>
-              <input
+                          <input
                 type="tel"
                 placeholder="70 00 00 00"
                 value={telephone}
                 onChange={(e) => setTelephone(e.target.value)}
+                list="suggestions-telephones"
                 style={{ width: "100%", padding: "10px", border: "none", outline: "none", background: "transparent", color: "black" }}
               />
+              <datalist id="suggestions-telephones">
+                {suggestionsTelephones.map((t, i) => <option key={i} value={t} />)}
+              </datalist>
             </div>
           </div>
 
           <div style={{ marginBottom: "14px", borderTop: "1px dashed #cbd5e1", paddingTop: "14px" }}>
             <label style={{ display: "block", fontSize: "13px", fontWeight: "600", marginBottom: "6px" }}>Nom et Prénom du Parent / Tuteur</label>
-            <input
-              type="text"
-              placeholder="Ex : OUEDRAOGO Paul"
-              value={parentNomPrenom}
-              onChange={(e) => setParentNomPrenom(e.target.value)}
-              style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1", background: "white", color: "black" }}
-            />
+                          <input
+                type="text"
+                placeholder="Ex : OUEDRAOGO Paul"
+                value={parentNomPrenom}
+                onChange={(e) => setParentNomPrenom(e.target.value)}
+                list="suggestions-parents"
+                style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1", background: "white", color: "black" }}
+              />
+              <datalist id="suggestions-parents">
+                {suggestionsParents.map((p, i) => <option key={i} value={p} />)}
+              </datalist>
           </div>
 
           <div style={{ marginBottom: "20px" }}>
@@ -664,13 +715,17 @@ export default function Students() {
               <span style={{ padding: "10px 12px", background: "#e2e8f0", fontWeight: "600", fontSize: "13px", color: "#334155", borderRight: "1px solid #cbd5e1" }}>
                 +226
               </span>
-              <input
+                           <input
                 type="tel"
                 placeholder="78 00 00 00"
                 value={parentTelephone}
                 onChange={(e) => setParentTelephone(e.target.value)}
+                list="suggestions-telephones-parents"
                 style={{ width: "100%", padding: "10px", border: "none", outline: "none", background: "transparent", color: "black" }}
               />
+              <datalist id="suggestions-telephones-parents">
+                {suggestionsTelephonesParents.map((t, i) => <option key={i} value={t} />)}
+              </datalist>
             </div>
           </div>
 
