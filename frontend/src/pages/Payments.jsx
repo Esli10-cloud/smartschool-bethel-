@@ -465,7 +465,7 @@ export default function Payments() {
 
     if (isAffected) {
       if (cls.includes("ACC") || cls.includes("COMPTA") || cls.includes("AB3") || cls.includes("G2")) {
-        tr1 = 40000; tr2 = 20000; tr3 = 20000; baseTotal = 80000;
+        tr1 = 25000; tr2 = 12500; tr3 = 12500; baseTotal = 50000;
       } else if (cls.includes("CAP") || cls.includes("AP")) {
         tr1 = 50000; tr2 = 25000; tr3 = 25000; baseTotal = 100000;
       } else if (cls.includes("GÉNIE CIVIL") || cls.includes("GENIE CIVIL") || cls.includes("F4")) {
