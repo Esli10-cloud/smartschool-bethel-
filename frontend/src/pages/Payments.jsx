@@ -349,8 +349,8 @@ export default function Payments() {
 
   const examOptions = getExamOptionsByClass(selectedStudent?.classe || selectedStudent?.class_name || "");
   const totalDossiers = examOptions
-    .filter((exam) => examSelections.includes(exam.id))
-    .reduce((sum, exam) => sum + exam.price, 0);
+  .filter((exam) => examSelections.includes(exam.label) || examSelections.includes(exam.id))
+  .reduce((sum, exam) => sum + exam.price, 0);
 
   // Fonction pour mettre à jour la quantité d'une tenue
   const handleUniformChange = (id, value) => {
