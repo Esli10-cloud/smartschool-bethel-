@@ -592,7 +592,7 @@ const scolaritePurePayee = Math.max(0, totalDejaPaye - fraisAnnexesDejaPayes);
 const resteActuelAvantPaiement = Math.max(0, totalScolariteFixe - scolaritePurePayee);
 
 // 7. CALCULS POUR L'AFFICHAGE EN TEMPS RÉEL (SIMULATION DU VERSEMENT)
-const hasIndependentAnnexSelection = (typeof totalTenues !== 'undefined' ? totalTenues : 0) > 0 || (typeof payDortoir !== 'undefined' && payDortoir);
+const hasIndependentAnnexSelection = (typeof totalTenues !== 'undefined' ? totalTenues : 0) > 0 || (typeof payDortoir !== 'undefined' && payDortoir) || (typeof totalDossiers !== 'undefined' && totalDossiers > 0);
 
 // Un paiement de tenue ou de dortoir ne doit JAMAIS toucher à la scolarité
 const deductionScolarite = hasIndependentAnnexSelection ? 0 : versementActuel;
