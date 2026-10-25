@@ -26,23 +26,50 @@ import "jspdf-autotable";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 // Configuration des frais d'examen
 const EXAM_FEES_CONFIG = {
-  BEPC: { label: "BEPC", price: 4500 },
-  BAC: { label: "BAC", price: 17000 },
-  BEP_INDUS: { label: "BEP Industriel", price: 9000 },
-  CAP_INDUS: { label: "CAP Industriel", price: 9000 },
-  BEP_COM: { label: "BEP Commercial", price: 6500 },
-  CAP_COM: { label: "CAP Commercial", price: 6500 },
+  BEPC: { label: "BEPC", price: 4500, id: "BEPC" },
+  BAC: { label: "BAC", price: 17000, id: "BAC" },
+  CAP_INDUS: { label: "CAP", price: 10000, id: "CAP_INDUS" },
+  BEP_INDUS: { label: "BEP", price: 10000, id: "BEP_INDUS" },
+  CAP_COM: { label: "CAP", price: 6500, id: "CAP_COM" },
+  BEP_COM: { label: "BEP", price: 6500, id: "BEP_COM" },
 };
 
 const getExamOptionsByClass = (studentClass = "") => {
   if (!studentClass) return [];
   const cls = studentClass.toUpperCase().trim();
   
-  if (cls.includes("3")) {
+  // 1. Cas de la 3ème (BEPC uniquement)
+  if (cls.includes("3EME") || cls.includes("3ÈME")) {
     return [EXAM_FEES_CONFIG.BEPC];
   }
 
+  // 2. Cas de CAP 3
+  if (cls.includes("CAP 3")) {
+    return [EXAM_FEES_CONFIG.CAP_INDUS];
+  }
+
+  // 3. Cas de BEP 1
+  if (cls.includes("BEP 1")) {
+    // Si c'est ACC, Compta ou AB3
+    if (cls.includes("ACC") || cls.includes("COMPTA") || cls.includes("AB3")) {
+      return [EXAM_FEES_CONFIG.CAP_COM]; // 6500
+    }
+    return [EXAM_FEES_CONFIG.CAP_INDUS]; // 10000
+  }
+
+  // 4. Cas de BEP 2
+  if (cls.includes("BEP 2")) {
+    // Si c'est ACC, Compta ou AB3
+    if (cls.includes("ACC") || cls.includes("COMPTA") || cls.includes("AB3")) {
+      return [EXAM_FEES_CONFIG.BEP_COM]; // 6500
+    }
+    return [EXAM_FEES_CONFIG.BEP_INDUS]; // 10000
+  }
+
+  // 5. Cas des Terminales
   if (cls.includes("TLE") || cls.includes("TERMINALE")) {
+    
+    // Terminale G2
     if (cls.includes("G2")) {
       return [
         EXAM_FEES_CONFIG.BAC,
@@ -50,6 +77,8 @@ const getExamOptionsByClass = (studentClass = "") => {
         EXAM_FEES_CONFIG.CAP_COM,
       ];
     }
+
+    // Terminales Industrielles (F2, F3, F4, etc.)
     const isIndustrial = ["CIVIL", "MVA", "ELEC", "GENIE", "F2", "F3", "F4", "MEM"].some(kw => cls.includes(kw));
     if (isIndustrial) {
       return [
@@ -58,8 +87,12 @@ const getExamOptionsByClass = (studentClass = "") => {
         EXAM_FEES_CONFIG.CAP_INDUS,
       ];
     }
+
+    // Terminale D et A (uniquement BAC)
     return [EXAM_FEES_CONFIG.BAC];
   }
+
+  // Par défaut, aucun examen
   return [];
 };
 // Configuration centralisée de l'établissement
