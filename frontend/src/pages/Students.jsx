@@ -420,11 +420,13 @@ export default function Students() {
                             background: "#e2e8f0"
                           }}
                         >
-                                                    <td colSpan="8" style={{ padding: "12px 20px", fontWeight: "bold", fontSize: "14px", color: "#1e293b", textTransform: "uppercase" }}>
-                            📚 CLASSE : {s.classe || "Sans classe"}
-                            <span style={{ float: "right", textTransform: "none", fontSize: "12px", color: "#475569" }}>
-                              Total : {studentsCountByClass[s.classe || "Sans classe"]} élève(s)
-                            </span>
+                          <td colSpan="8" style={{ padding: "12px 20px", fontSize: "14px", color: "#1e293b" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontWeight: "bold", textTransform: "uppercase" }}>
+                              <span>📚 CLASSE : {s.classe || "Sans classe"}</span>
+                              <span style={{ fontSize: "12px", color: "#475569", textTransform: "none", fontWeight: "normal" }}>
+                                Total : {studentsCountByClass[s.classe || "Sans classe"]} élève(s)
+                              </span>
+                            </div>
                           </td>
                         </tr>
                       )}
