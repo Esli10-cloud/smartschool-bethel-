@@ -247,6 +247,12 @@ export default function Students() {
     
     return 0;
   });
+    // ✅ NOUVEAU : Calcul du nombre d'élèves par classe
+  const studentsCountByClass = studentsForPrint.reduce((acc, student) => {
+    const cls = student.classe || "Sans classe";
+    acc[cls] = (acc[cls] || 0) + 1;
+    return acc;
+  }, {});
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "#f8fafc" }}>
       
@@ -414,8 +420,11 @@ export default function Students() {
                             background: "#e2e8f0"
                           }}
                         >
-                          <td colSpan="9" style={{ padding: "12px 20px", fontWeight: "bold", fontSize: "14px", color: "#1e293b", textTransform: "uppercase" }}>
+                                                    <td colSpan="8" style={{ padding: "12px 20px", fontWeight: "bold", fontSize: "14px", color: "#1e293b", textTransform: "uppercase" }}>
                             📚 CLASSE : {s.classe || "Sans classe"}
+                            <span style={{ float: "right", textTransform: "none", fontSize: "12px", color: "#475569" }}>
+                              Total : {studentsCountByClass[s.classe || "Sans classe"]} élève(s)
+                            </span>
                           </td>
                         </tr>
                       )}
