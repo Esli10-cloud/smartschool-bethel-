@@ -1,133 +1,206 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import React, { useState, useEffect } from "react";
+import { supabase } from "../lib/supabase";
+import Sidebar from "../components/Sidebar";
+import Header from "../components/Header";
+import { Printer, Filter } from "lucide-react";
 
 export default function Grades() {
-  const [grades, setGrades] = useState([]);
-  const [matiere, setMatiere] = useState('');
-  const [valeur, setValeur] = useState('');
-  const [coefficient, setCoefficient] = useState('2');
-  const [trimestre, setTrimestre] = useState('1 SEMESTRE');
-  
-  // Infos fictives pour l'exemple du bulletin
-  const [eleveNom] = useState('KOUDOUGOU');
-  const [elevePrenom] = useState('WENDKUUNI TOUSSAIN');
-  const [eleveClasse] = useState('CAP 1 ELECTRO-TECHNIQUE');
-  const [eleveMatricule] = useState('LTB-10/25-00430');
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedClass, setSelectedClass] = useState("");
+
+  // Stocke les notes tapées : { "id_eleve": { n1: 12, n2: 15, n3: 10, coef: 1 } }
+  const [notesData, setNotesData] = useState({});
 
   useEffect(() => {
-    fetchGrades();
+    const fetchStudents = async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("students")
+        .select("*")
+        .order("nom", { ascending: true });
+
+      if (!error && data) {
+        setStudents(data);
+        // Sélectionne la première classe par défaut
+        if (data.length > 0 && data[0].classe) {
+          setSelectedClass(data[0].classe);
+        }
+      }
+      setLoading(false);
+    };
+    fetchStudents();
   }, []);
 
-  async function fetchGrades() {
-    const { data, error } = await supabase.from('notes').select('*');
-    if (error) console.error('Erreur:', error);
-    else setGrades(data || []);
-  }
+  // Liste des classes uniques
+  const classesList = [...new Set(students.map((s) => s.classe).filter(Boolean))].sort();
 
-  async function addGrade(e) {
-    e.preventDefault();
-    if (!valeur) return alert('Veuillez entrer une note');
+  // Élèves de la classe sélectionnée
+  const filteredStudents = students.filter((s) => s.classe === selectedClass);
 
-    const { error } = await supabase.from('notes').insert([
-      { matiere, valeur: parseFloat(valeur), coefficient: parseInt(coefficient) || 1, trimestre }
-    ]);
+  // Gestion de la saisie
+  const handleNoteChange = (studentId, field, value) => {
+    const numValue = parseFloat(value) || "";
+    setNotesData((prev) => ({
+      ...prev,
+      [studentId]: {
+        ...(prev[studentId] || {}),
+        [field]: numValue,
+      },
+    }));
+  };
 
-    if (error) {
-      alert('Erreur lors de l\'ajout');
-      console.error(error);
-    } else {
-      setMatiere('');
-      setValeur('');
-      fetchGrades();
-    }
-  }
+  // Calcul automatique
+  const calculateStats = (studentId) => {
+    const studentNotes = notesData[studentId] || {};
+    const n1 = parseFloat(studentNotes.n1) || 0;
+    const n2 = parseFloat(studentNotes.n2) || 0;
+    const n3 = parseFloat(studentNotes.n3) || 0;
+    const coef = parseFloat(studentNotes.coef) || 1;
 
-  // Calculs pour le bulletin
-  const totalCoeff = grades.reduce((acc, curr) => acc + (curr.coefficient || 2), 0);
-  const totalPondere = grades.reduce((acc, curr) => {
-    const note = Number(curr.valeur) || Number(curr.grade) || 0;
-    const coeff = curr.coefficient || 2;
-    return acc + (note * coeff);
-  }, 0);
-  const moyenneGenerale = totalCoeff > 0 ? (totalPondere / totalCoeff).toFixed(2) : 0;
+    const moyenne = (n1 + n2 + n3) / 3;
+    const ponderee = moyenne * coef;
+
+    const hasNotes = studentNotes.n1 || studentNotes.n2 || studentNotes.n3;
+
+    return {
+      moyenne: hasNotes ? moyenne.toFixed(2) : "",
+      ponderee: hasNotes ? ponderee.toFixed(2) : "",
+    };
+  };
 
   return (
-    <div style={{ padding: '20px', maxWidth: '900px', margin: '0 auto', background: '#fff', border: '1px solid #cbd5e1' }}>
-      
-      {/* EN-TETE OFFICIEL ECOLE */}
-      <div style={{ textAlign: 'center', borderBottom: '2px solid #000', paddingBottom: '10px', marginBottom: '15px' }}>
-        <h2 style={{ margin: '0', fontSize: '18px' }}>LYCÉE TECHNIQUE BETHEL</h2>
-        <p style={{ margin: '5px 0', fontSize: '11px' }}>Année scolaire : 2025-2026</p>
-        <h3 style={{ margin: '10px 0', background: '#f1f5f9', padding: '5px' }}>BULLETIN DE NOTES OFFICIEL</h3>
+    <div style={{ display: "flex", minHeight: "100vh", background: "#f8fafc" }}>
+      {/* Cacher la Sidebar à l'impression */}
+      <div className="no-print">
+        <Sidebar />
       </div>
 
-      {/* INFOS ELEVE */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', background: '#f8fafc', padding: '10px', fontSize: '13px', marginBottom: '15px', border: '1px solid #cbd5e1' }}>
-        <div><strong>Classe :</strong> {eleveClasse}</div>
-        <div><strong>Matricule :</strong> {eleveMatricule}</div>
-        <div><strong>Nom :</strong> {eleveNom}</div>
-        <div><strong>Prénoms :</strong> {elevePrenom}</div>
-      </div>
+      <div style={{ flex: 1 }}>
+        <div className="no-print">
+          <Header title="Fiches de Notes" />
+        </div>
 
-      {/* FORMULAIRE D'AJOUT RAPIDE POUR TEST */}
-      <form onSubmit={addGrade} style={{ margin: '15px 0', display: 'flex', gap: '8px', flexWrap: 'wrap', background: '#eff6ff', padding: '10px', borderRadius: '6px' }}>
-        <input type="text" placeholder="Matière" value={matiere} onChange={e => setMatiere(e.target.value)} required style={{ padding: '6px', flex: 2 }} />
-        <input type="number" step="0.01" placeholder="Note /20" value={valeur} onChange={e => setValeur(e.target.value)} required style={{ padding: '6px', width: '80px' }} />
-        <input type="number" placeholder="Coeff" value={coefficient} onChange={e => setCoefficient(e.target.value)} required style={{ padding: '6px', width: '60px' }} />
-        <button type="submit" style={{ padding: '6px 12px', background: '#2563eb', color: '#fff', border: 'none', cursor: 'pointer', borderRadius: '4px' }}>Ajouter au bulletin</button>
-      </form>
+        <div style={{ padding: "30px" }} className="print-padding-reset">
+          
+          {/* Barre d'outils */}
+          <div className="no-print" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", background: "white", padding: "8px 12px", borderRadius: "8px", border: "1px solid #cbd5e1" }}>
+              <Filter size={16} color="#64748b" />
+              <select
+                value={selectedClass}
+                onChange={(e) => setSelectedClass(e.target.value)}
+                style={{ border: "none", outline: "none", background: "transparent", fontSize: "14px", fontWeight: "600", color: "#334155" }}
+              >
+                <option value="">Sélectionner une classe...</option>
+                {classesList.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
 
-      {/* TABLEAU DES MATIERES */}
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-        <thead>
-          <tr style={{ background: '#e2e8f0', textAlign: 'left' }}>
-            <th style={{ padding: '8px', border: '1px solid #94a3b8' }}>Matières</th>
-            <th style={{ padding: '8px', border: '1px solid #94a3b8', textAlign: 'center' }}>Coef</th>
-            <th style={{ padding: '8px', border: '1px solid #94a3b8', textAlign: 'center' }}>Moy /20</th>
-            <th style={{ padding: '8px', border: '1px solid #94a3b8', textAlign: 'center' }}>Notes Pondérées</th>
-            <th style={{ padding: '8px', border: '1px solid #94a3b8' }}>Appréciation</th>
-          </tr>
-        </thead>
-        <tbody>
-          {grades.length === 0 ? (
-            <tr>
-              <td colSpan="5" style={{ padding: '15px', textAlign: 'center' }}>Aucune matière enregistrée pour l'instant.</td>
-            </tr>
-          ) : (
-            grades.map((g, index) => {
-              const note = Number(g.valeur) || Number(g.grade) || 0;
-              const coeff = g.coefficient || 2;
-              const pondere = note * coeff;
-              let appreciation = "Faible";
-              if (note >= 14) appreciation = "Bien";
-              else if (note >= 10) appreciation = "Passable";
-              else if (note < 7) appreciation = "Très faible";
+            <button
+              onClick={() => window.print()}
+              style={{
+                display: "flex", alignItems: "center", gap: "8px", background: "#2563eb", color: "white",
+                padding: "10px 18px", borderRadius: "8px", border: "none", fontWeight: "600", cursor: "pointer"
+              }}
+            >
+              <Printer size={18} /> Imprimer la fiche
+            </button>
+          </div>
 
-              return (
-                <tr key={index}>
-                  <td style={{ padding: '6px', border: '1px solid #cbd5e1' }}>{g.matiere}</td>
-                  <td style={{ padding: '6px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{coeff}</td>
-                  <td style={{ padding: '6px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{note}</td>
-                  <td style={{ padding: '6px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{pondere}</td>
-                  <td style={{ padding: '6px', border: '1px solid #cbd5e1' }}>{appreciation}</td>
+          {/* La fiche */}
+          <div id="grades-print" style={{ background: "white", padding: "20px", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
+            
+            <div style={{ textAlign: "center", marginBottom: "20px", borderBottom: "2px solid #000", paddingBottom: "10px" }}>
+              <h1 style={{ fontSize: "20px", fontWeight: "bold", margin: 0 }}>LYCÉE TECHNIQUE BETHEL</h1>
+              <h2 style={{ fontSize: "16px", margin: "5px 0" }}>FICHE DE NOTES</h2>
+              <p style={{ fontSize: "14px", fontWeight: "bold", margin: 0 }}>CLASSE : {selectedClass || "Aucune classe sélectionnée"}</p>
+              <p style={{ fontSize: "12px", margin: "5px 0 0 0", fontStyle: "italic" }}>Matière / Professeur : ......................................................</p>
+            </div>
+
+            <table style={{ width: "100%", borderCollapse: "collapse", border: "1px solid #000" }}>
+              <thead>
+                <tr style={{ background: "#f1f5f9" }}>
+                  <th style={{ border: "1px solid #000", padding: "8px", textAlign: "left", fontSize: "13px" }}>Matricule</th>
+                  <th style={{ border: "1px solid #000", padding: "8px", textAlign: "left", fontSize: "13px" }}>Nom & Prénom</th>
+                  <th style={{ border: "1px solid #000", padding: "8px", textAlign: "center", fontSize: "13px", width: "70px" }}>Note 1</th>
+                  <th style={{ border: "1px solid #000", padding: "8px", textAlign: "center", fontSize: "13px", width: "70px" }}>Note 2</th>
+                  <th style={{ border: "1px solid #000", padding: "8px", textAlign: "center", fontSize: "13px", width: "70px" }}>Note 3</th>
+                  <th style={{ border: "1px solid #000", padding: "8px", textAlign: "center", fontSize: "13px", width: "80px" }}>Moyenne</th>
+                  <th style={{ border: "1px solid #000", padding: "8px", textAlign: "center", fontSize: "13px", width: "60px" }}>Coef</th>
+                  <th style={{ border: "1px solid #000", padding: "8px", textAlign: "center", fontSize: "13px", width: "80px" }}>Pondérée</th>
                 </tr>
-              );
-            })
-          )}
-        </tbody>
-      </table>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr><td colSpan="8" style={{ padding: "20px", textAlign: "center" }}>Chargement...</td></tr>
+                ) : filteredStudents.length === 0 ? (
+                  <tr><td colSpan="8" style={{ padding: "20px", textAlign: "center" }}>Aucun élève dans cette classe.</td></tr>
+                ) : (
+                  filteredStudents.map((s) => {
+                    const stats = calculateStats(s.id);
+                    const studentNotes = notesData[s.id] || {};
 
-      {/* BILAN DU BULLETIN */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '15px', background: '#f8fafc', padding: '10px', border: '1px solid #cbd5e1', fontSize: '13px' }}>
-        <div>
-          <p><strong>TOTAL COEFFICIENTS :</strong> {totalCoeff}</p>
-          <p><strong>TOTAL PONDÉRÉ :</strong> {totalPondere}</p>
-        </div>
-        <div style={{ textAlign: 'right' }}>
-          <p style={{ fontSize: '16px' }}><strong>MOYENNE TRIMESTRIELLE :</strong> <span style={{ color: '#2563eb' }}>{moyenneGenerale} / 20</span></p>
+                    return (
+                      <tr key={s.id}>
+                        <td style={{ border: "1px solid #000", padding: "6px 8px", fontSize: "13px", color: "#2563eb", fontWeight: "bold" }}>{s.matricule}</td>
+                        <td style={{ border: "1px solid #000", padding: "6px 8px", fontSize: "13px", fontWeight: "bold" }}>{s.nom} {s.prenom}</td>
+                        
+                        <td style={{ border: "1px solid #000", padding: "2px" }}>
+                          <input className="no-print-border" type="number" value={studentNotes.n1 || ""} onChange={(e) => handleNoteChange(s.id, 'n1', e.target.value)} style={{ width: "100%", border: "none", textAlign: "center", outline: "none", background: "transparent" }} />
+                        </td>
+                        <td style={{ border: "1px solid #000", padding: "2px" }}>
+                          <input className="no-print-border" type="number" value={studentNotes.n2 || ""} onChange={(e) => handleNoteChange(s.id, 'n2', e.target.value)} style={{ width: "100%", border: "none", textAlign: "center", outline: "none", background: "transparent" }} />
+                        </td>
+                        <td style={{ border: "1px solid #000", padding: "2px" }}>
+                          <input className="no-print-border" type="number" value={studentNotes.n3 || ""} onChange={(e) => handleNoteChange(s.id, 'n3', e.target.value)} style={{ width: "100%", border: "none", textAlign: "center", outline: "none", background: "transparent" }} />
+                        </td>
+
+                        <td style={{ border: "1px solid #000", padding: "6px 8px", fontSize: "13px", textAlign: "center", fontWeight: "bold", color: "#16a34a" }}>{stats.moyenne}</td>
+                        
+                        <td style={{ border: "1px solid #000", padding: "2px" }}>
+                           <input className="no-print-border" type="number" value={studentNotes.coef || ""} onChange={(e) => handleNoteChange(s.id, 'coef', e.target.value)} placeholder="1" style={{ width: "100%", border: "none", textAlign: "center", outline: "none", background: "transparent" }} />
+                        </td>
+
+                        <td style={{ border: "1px solid #000", padding: "6px 8px", fontSize: "13px", textAlign: "center", fontWeight: "bold", color: "#2563eb" }}>{stats.ponderee}</td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+            
+            <div style={{ marginTop: "30px", textAlign: "right", fontSize: "14px", fontWeight: "bold" }}>
+               Signature du professeur : ......................................................
+            </div>
+
+          </div>
         </div>
       </div>
 
+      {/* Règles CSS d'impression */}
+      <style>{`
+        @media print {
+          .no-print { display: none !important; }
+          .print-padding-reset { padding: 0 !important; }
+          body { background: white !important; }
+          #grades-print { border: none !important; padding: 0 !important; }
+          
+          .no-print-border {
+            border: none !important;
+            outline: none !important;
+            background: transparent !important;
+          }
+          
+          input[type=number]::-webkit-inner-spin-button, 
+          input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+          }
+        }
+      `}</style>
     </div>
   );
 }
