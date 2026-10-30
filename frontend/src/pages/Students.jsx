@@ -511,7 +511,9 @@ export default function Students() {
                     </tr>
                   )}
                                         <tr style={{ borderBottom: "1px solid #ccc", fontSize: "14px" }}>
-                        <td style={{ padding: "8px", border: "1px solid #000", textAlign: "center" }}>{index + 1}</td>
+<td style={{ padding: "8px", border: "1px solid #000", textAlign: "center" }}>
+  {studentsForPrint.filter(student => student.classe === s.classe).findIndex(student => student.id === s.id) + 1}
+</td>
                         <td style={{ padding: "8px", border: "1px solid #000", fontWeight: "bold", color: "#2563eb" }}>{s.matricule}</td>
                         <td style={{ padding: "8px", border: "1px solid #000", fontWeight: "bold" }}>{s.nom} {s.prenom}</td>
                         <td style={{ padding: "8px", border: "1px solid #000", textAlign: "center" }}>{s.sexe === "Masculin" ? "M" : "F"}</td>
