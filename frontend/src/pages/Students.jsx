@@ -482,49 +482,51 @@ export default function Students() {
             </div>
       {/* TABLEAU POUR L'IMPRESSION UNIQUEMENT (trié par classe) */}
       <div className="print-only" style={{ display: "none" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                        <thead>
-                <tr style={{ background: "#2563eb", color: "white", textAlign: "left", fontSize: "14px" }}>
-                  <th style={{ padding: "10px", border: "1px solid #000", width: "5%" }}>N°</th>
-                  <th style={{ padding: "10px", border: "1px solid #000", width: "15%" }}>Matricule</th>
-                  <th style={{ padding: "10px", border: "1px solid #000", width: "30%" }}>Nom & Prénom</th>
-                  <th style={{ padding: "10px", border: "1px solid #000", width: "10%" }}>Sexe</th>
-                  <th style={{ padding: "10px", border: "1px solid #000", width: "20%" }}>Parent / Tuteur</th>
-                  <th style={{ padding: "10px", border: "1px solid #000", width: "20%" }}>Contact Parent</th>
-                </tr>
-              </thead>
-          <tbody>
-            {studentsForPrint.map((s, index) => {
-              const previousStudent = index > 0 ? studentsForPrint[index - 1] : null;
-              const isNewClass = !previousStudent || previousStudent.classe !== s.classe;
+                    {classesList.map((cls) => {
+              const classStudents = studentsForPrint.filter((s) => s.classe === cls);
+              if (classStudents.length === 0) return null;
 
               return (
-                <React.Fragment key={s.id}>
-                  {isNewClass && (
-                    <tr style={{ pageBreakBefore: 'always', background: "#e2e8f0" }}>
-                                                <td colSpan="8" style={{ padding: "12px 20px", fontWeight: "bold", fontSize: "14px", color: "#1e293b", textTransform: "uppercase" }}>
-                            📚 CLASSE : {s.classe || "Sans classe"}
-                            <span style={{ float: "right", fontSize: "12px", color: "#475569", textTransform: "none", fontWeight: "normal" }}>
-                              Total : {studentsCountByClass[(s.classe || "Sans classe").trim()]} élève(s)
-                            </span>
-                          </td>
-                    </tr>
-                  )}
-                                        <tr style={{ borderBottom: "1px solid #ccc", fontSize: "14px" }}>
-<td style={{ padding: "8px", border: "1px solid #000", textAlign: "center" }}>
-  {studentsForPrint.filter(student => student.classe === s.classe).findIndex(student => student.id === s.id) + 1}
-</td>
-                        <td style={{ padding: "8px", border: "1px solid #000", fontWeight: "bold", color: "#2563eb" }}>{s.matricule}</td>
-                        <td style={{ padding: "8px", border: "1px solid #000", fontWeight: "bold" }}>{s.nom} {s.prenom}</td>
-                        <td style={{ padding: "8px", border: "1px solid #000", textAlign: "center" }}>{s.sexe === "Masculin" ? "M" : "F"}</td>
-                        <td style={{ padding: "8px", border: "1px solid #000" }}>{s.parent_nom_prenom || "-"}</td>
-                        <td style={{ padding: "8px", border: "1px solid #000" }}>{s.telephone_parent || "-"}</td>
+                <div key={cls} style={{ pageBreakAfter: "always", marginBottom: "30px" }}>
+                  
+                  {/* Titre de la classe AU-DESSUS du tableau */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px", padding: "10px", borderBottom: "2px solid #000" }}>
+                    <h3 style={{ fontSize: "16px", fontWeight: "bold", textTransform: "uppercase", margin: 0 }}>
+                      CLASSE : {cls}
+                    </h3>
+                    <span style={{ fontSize: "14px", fontWeight: "bold" }}>
+                      Total : {classStudents.length} élève(s)
+                    </span>
+                  </div>
+
+                  {/* Le tableau des élèves de cette classe */}
+                  <table style={{ width: "100%", borderCollapse: "collapse", border: "1px solid #000" }}>
+                    <thead>
+                      <tr style={{ background: "#f1f5f9" }}>
+                        <th style={{ padding: "8px", border: "1px solid #000", width: "5%", textAlign: "center" }}>N°</th>
+                        <th style={{ padding: "8px", border: "1px solid #000", width: "15%" }}>Matricule</th>
+                        <th style={{ padding: "8px", border: "1px solid #000", width: "30%" }}>Nom & Prénom</th>
+                        <th style={{ padding: "8px", border: "1px solid #000", width: "10%", textAlign: "center" }}>Sexe</th>
+                        <th style={{ padding: "8px", border: "1px solid #000", width: "20%" }}>Parent / Tuteur</th>
+                        <th style={{ padding: "8px", border: "1px solid #000", width: "20%" }}>Contact Parent</th>
                       </tr>
-                </React.Fragment>
+                    </thead>
+                    <tbody>
+                      {classStudents.map((s, index) => (
+                        <tr key={s.id} style={{ borderBottom: "1px solid #ccc", fontSize: "13px" }}>
+                          <td style={{ padding: "6px", border: "1px solid #000", textAlign: "center" }}>{index + 1}</td>
+                          <td style={{ padding: "6px", border: "1px solid #000", fontWeight: "bold", color: "#2563eb" }}>{s.matricule}</td>
+                          <td style={{ padding: "6px", border: "1px solid #000", fontWeight: "bold" }}>{s.nom} {s.prenom}</td>
+                          <td style={{ padding: "6px", border: "1px solid #000", textAlign: "center" }}>{s.sexe === "Masculin" ? "M" : "F"}</td>
+                          <td style={{ padding: "6px", border: "1px solid #000" }}>{s.parent_nom_prenom || "-"}</td>
+                          <td style={{ padding: "6px", border: "1px solid #000" }}>{s.telephone_parent || "-"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               );
             })}
-          </tbody>
-        </table>
       </div>
       <Modal 
         isOpen={isModalOpen} 
