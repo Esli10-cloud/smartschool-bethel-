@@ -380,14 +380,17 @@ export default function Students() {
           {/* Tableau des élèves */}
           <div className="no-print" style={{ background: "white", borderRadius: "12px", border: "1px solid #e2e8f0", overflow: "hidden" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                           <thead>
-                <tr>
-                  <th style={{ width: "5%", border: "1px solid #000" }}>N°</th>
-                  <th style={{ width: "15%", border: "1px solid #000" }}>Matricule</th>
-                  <th style={{ width: "30%", border: "1px solid #000" }}>Nom & Prénom</th>
-                  <th style={{ width: "10%", border: "1px solid #000" }}>Sexe</th>
-                  <th style={{ width: "20%", border: "1px solid #000" }}>Nom du Parent</th>
-                  <th style={{ width: "20%", border: "1px solid #000" }}>Contact Parent</th>
+                              <thead>
+                <tr style={{ background: "#2563eb", color: "white", textAlign: "left", fontSize: "14px" }}>
+                  <th style={{ padding: "14px 20px" }}>Matricule</th>
+                  <th style={{ padding: "14px 20px" }}>Nom & Prénom</th>
+                  <th style={{ padding: "14px 20px" }}>Sexe</th>
+                  <th style={{ padding: "14px 20px" }}>Classe & Filière</th>
+                  <th style={{ padding: "14px 20px" }}>Statut</th>
+                  <th style={{ padding: "14px 20px" }}>Contact Élève</th>
+                  <th style={{ padding: "14px 20px" }}>Parent / Tuteur</th>
+                  <th style={{ padding: "14px 20px" }}>Contact Parent</th>
+                  <th className="no-print" style={{ padding: "14px 20px", textAlign: "right" }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
