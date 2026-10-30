@@ -380,17 +380,14 @@ export default function Students() {
           {/* Tableau des élèves */}
           <div className="no-print" style={{ background: "white", borderRadius: "12px", border: "1px solid #e2e8f0", overflow: "hidden" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
-              <thead>
-                <tr style={{ background: "#2563eb", color: "white", textAlign: "left", fontSize: "14px" }}>
-                  <th style={{ padding: "14px 20px" }}>Matricule</th>
-                  <th style={{ padding: "14px 20px" }}>Nom & Prénom</th>
-                  <th style={{ padding: "14px 20px" }}>Sexe</th>
-                  <th style={{ padding: "14px 20px" }}>Classe & Filière</th>
-                  <th style={{ padding: "14px 20px" }}>Statut</th>
-                  <th style={{ padding: "14px 20px" }}>Contact Élève</th>
-                  <th style={{ padding: "14px 20px" }}>Parent / Tuteur</th>
-                  <th style={{ padding: "14px 20px" }}>Contact Parent</th>
-                  <th className="no-print" style={{ padding: "14px 20px", textAlign: "right" }}>Actions</th>
+                           <thead>
+                <tr>
+                  <th style={{ width: "5%", border: "1px solid #000" }}>N°</th>
+                  <th style={{ width: "15%", border: "1px solid #000" }}>Matricule</th>
+                  <th style={{ width: "30%", border: "1px solid #000" }}>Nom & Prénom</th>
+                  <th style={{ width: "10%", border: "1px solid #000" }}>Sexe</th>
+                  <th style={{ width: "20%", border: "1px solid #000" }}>Nom du Parent</th>
+                  <th style={{ width: "20%", border: "1px solid #000" }}>Contact Parent</th>
                 </tr>
               </thead>
               <tbody>
@@ -486,18 +483,16 @@ export default function Students() {
       {/* TABLEAU POUR L'IMPRESSION UNIQUEMENT (trié par classe) */}
       <div className="print-only" style={{ display: "none" }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ background: "#2563eb", color: "white", textAlign: "left", fontSize: "14px" }}>
-              <th style={{ padding: "14px 20px" }}>Matricule</th>
-              <th style={{ padding: "14px 20px" }}>Nom & Prénom</th>
-              <th style={{ padding: "14px 20px" }}>Sexe</th>
-              <th style={{ padding: "14px 20px" }}>Classe & Filière</th>
-              <th style={{ padding: "14px 20px" }}>Statut</th>
-              <th style={{ padding: "14px 20px" }}>Contact Élève</th>
-              <th style={{ padding: "14px 20px" }}>Parent / Tuteur</th>
-              <th style={{ padding: "14px 20px" }}>Contact Parent</th>
-            </tr>
-          </thead>
+                        <thead>
+                <tr style={{ background: "#2563eb", color: "white", textAlign: "left", fontSize: "14px" }}>
+                  <th style={{ padding: "10px", border: "1px solid #000", width: "5%" }}>N°</th>
+                  <th style={{ padding: "10px", border: "1px solid #000", width: "15%" }}>Matricule</th>
+                  <th style={{ padding: "10px", border: "1px solid #000", width: "30%" }}>Nom & Prénom</th>
+                  <th style={{ padding: "10px", border: "1px solid #000", width: "10%" }}>Sexe</th>
+                  <th style={{ padding: "10px", border: "1px solid #000", width: "20%" }}>Parent / Tuteur</th>
+                  <th style={{ padding: "10px", border: "1px solid #000", width: "20%" }}>Contact Parent</th>
+                </tr>
+              </thead>
           <tbody>
             {studentsForPrint.map((s, index) => {
               const previousStudent = index > 0 ? studentsForPrint[index - 1] : null;
@@ -515,22 +510,14 @@ export default function Students() {
                           </td>
                     </tr>
                   )}
-                  <tr style={{ borderBottom: "1px solid #f1f5f9", fontSize: "14px" }}>
-                    <td style={{ padding: "14px 20px", fontWeight: "600", color: "#2563eb" }}>{s.matricule}</td>
-                    <td style={{ padding: "14px 20px", fontWeight: "600" }}>{s.nom} {s.prenom}</td>
-                    <td style={{ padding: "14px 20px" }}>{s.sexe === "Masculin" ? "M" : "F"}</td>
-                    <td style={{ padding: "14px 20px" }}>{s.classe}</td>
-                    <td style={{ padding: "14px 20px" }}>
-                      {s.is_affecte_etat ? (
-                        <span style={{ background: "#dbeafe", color: "#1e40af", padding: "4px 8px", borderRadius: "6px", fontSize: "12px", fontWeight: "600" }}>Affecté État</span>
-                      ) : (
-                        <span style={{ background: "#f1f5f9", color: "#475569", padding: "4px 8px", borderRadius: "6px", fontSize: "12px" }}>Standard</span>
-                      )}
-                    </td>
-                    <td style={{ padding: "14px 20px", color: "#475569" }}>{s.telephone || "-"}</td>
-                    <td style={{ padding: "14px 20px" }}>{s.parent_nom_prenom || "-"}</td>
-                    <td style={{ padding: "14px 20px", color: "#475569" }}>{s.telephone_parent || "-"}</td>
-                  </tr>
+                                        <tr style={{ borderBottom: "1px solid #ccc", fontSize: "14px" }}>
+                        <td style={{ padding: "8px", border: "1px solid #000", textAlign: "center" }}>{index + 1}</td>
+                        <td style={{ padding: "8px", border: "1px solid #000", fontWeight: "bold", color: "#2563eb" }}>{s.matricule}</td>
+                        <td style={{ padding: "8px", border: "1px solid #000", fontWeight: "bold" }}>{s.nom} {s.prenom}</td>
+                        <td style={{ padding: "8px", border: "1px solid #000", textAlign: "center" }}>{s.sexe === "Masculin" ? "M" : "F"}</td>
+                        <td style={{ padding: "8px", border: "1px solid #000" }}>{s.parent_nom_prenom || "-"}</td>
+                        <td style={{ padding: "8px", border: "1px solid #000" }}>{s.telephone_parent || "-"}</td>
+                      </tr>
                 </React.Fragment>
               );
             })}
