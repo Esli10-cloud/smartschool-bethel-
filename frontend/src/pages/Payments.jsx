@@ -245,8 +245,7 @@ export const getExactInstallments = (studentClass = "", totalScolariteFixe = 0) 
     };
   }
 
-  const clsUpper = String(studentClass).toUpperCase().trim();
-  let foundKey = null;
+  const clsUpper = String(studentClass).toUpperCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
   // ==========================================
   // 1. ÉLECTRONIQUE / ÉLECTROTECHNIQUE
