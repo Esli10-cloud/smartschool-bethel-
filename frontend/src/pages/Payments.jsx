@@ -240,20 +240,61 @@ export const getExactInstallments = (studentClass = "", totalScolariteFixe = 0) 
     return {
       v1: Math.round(totalScolariteFixe * 0.5),
       v2: Math.round(totalScolariteFixe * 0.25),
-      v3: Math.round(totalScolariteFixe * 0.25)
+      v3: Math.round(totalScolariteFixe * 0.25),
+      total: totalScolariteFixe
     };
   }
 
   const clsUpper = String(studentClass).toUpperCase().trim();
-
-    // 1. On cherche d'abord par mots-clés spécifiques pour éviter les erreurs de nommage
   let foundKey = null;
-  if (clsUpper.includes("BEP") && clsUpper.includes("MVA")) foundKey = "BEP 1 MVA";
-  else if (clsUpper.includes("CAP") && clsUpper.includes("MVA")) foundKey = "CAP MVA";
-  else if (clsUpper.includes("BEP") && clsUpper.includes("GC")) foundKey = "BEP 1 GC";
-  else if (clsUpper.includes("BEP") && clsUpper.includes("EL")) foundKey = "BEP 1 EL";
 
-  // 2. Si aucun mot-clé spécifique n'est trouvé, on utilise l'ancienne méthode de recherche
+  // ==========================================
+  // 1. ÉLECTRONIQUE / ÉLECTROTECHNIQUE
+  // ==========================================
+  if (clsUpper.includes("CAP") && (clsUpper.includes("EL") || clsUpper.includes("ELECTRO"))) foundKey = "CAP 1";
+  else if (clsUpper.includes("BEP 1") && (clsUpper.includes("EL") || clsUpper.includes("ELECTRO"))) foundKey = "BEP 1 EL";
+  else if (clsUpper.includes("BEP 2") && (clsUpper.includes("EL") || clsUpper.includes("ELECTRO"))) foundKey = "BEP 2 EL";
+  else if ((clsUpper.includes("TLE F2") || clsUpper.includes("TF2"))) foundKey = "TLE F2";
+  else if ((clsUpper.includes("TLE F3") || clsUpper.includes("TF3"))) foundKey = "TLE F3";
+  else if (clsUpper.includes("BAC-PRO") && (clsUpper.includes("EL") || clsUpper.includes("ELECTRO"))) foundKey = "BAC-PRO EL";
+
+  // ==========================================
+  // 2. GÉNIE CIVIL
+  // ==========================================
+  else if (clsUpper.includes("CAP") && clsUpper.includes("GC")) foundKey = "CAP 1";
+  else if (clsUpper.includes("BEP 1") && clsUpper.includes("GC")) foundKey = "BEP 1 GC";
+  else if (clsUpper.includes("BEP 2") && clsUpper.includes("GC")) foundKey = "BEP 2 GC";
+  else if (clsUpper.includes("TLE F4") || clsUpper.includes("TF4")) foundKey = "TLE F4";
+  else if (clsUpper.includes("BAC-PRO") && clsUpper.includes("GC")) foundKey = "BAC-PRO GC";
+
+  // ==========================================
+  // 3. MÉCANIQUE AUTO (MVA)
+  // ==========================================
+  else if (clsUpper.includes("CAP") && clsUpper.includes("MVA")) foundKey = "CAP MVA";
+  else if (clsUpper.includes("BEP 1") && clsUpper.includes("MVA")) foundKey = "BEP 1 MVA";
+  else if (clsUpper.includes("BEP 2") && clsUpper.includes("MVA")) foundKey = "BEP 2 MVA";
+  else if (clsUpper.includes("BAC-PRO") && clsUpper.includes("MVA")) foundKey = "BAC-PRO MVA";
+
+  // ==========================================
+  // 4. COMPTABILITÉ
+  // ==========================================
+  else if (clsUpper.includes("BEP 1") && (clsUpper.includes("COMPTA") || clsUpper.includes("AB3") || clsUpper.includes("ACC"))) foundKey = "BEP 1 AB";
+  else if (clsUpper.includes("BEP 2") && (clsUpper.includes("COMPTA") || clsUpper.includes("AB3") || clsUpper.includes("ACC"))) foundKey = "BEP 2 AB";
+  else if (clsUpper.includes("TLE G2") || clsUpper.includes("TL G2")) foundKey = "TLE G2";
+
+  // ==========================================
+  // 5. ENSEIGNEMENT GÉNÉRAL
+  // ==========================================
+  else if (clsUpper.includes("6EME") || clsUpper.includes("6EME")) foundKey = "6EME";
+  else if (clsUpper.includes("5EME") || clsUpper.includes("5EME")) foundKey = "5EME";
+  else if (clsUpper.includes("4EME") || clsUpper.includes("4EME")) foundKey = "4EME";
+  else if (clsUpper.includes("3EME") || clsUpper.includes("3EME")) foundKey = "3EME";
+  else if (clsUpper.includes("2ND AC") || clsUpper.includes("2NDE")) foundKey = "2ND AC";
+  else if (clsUpper.includes("1ERE D") || clsUpper.includes("1ERE A") || clsUpper.includes("TLE D") || clsUpper.includes("TLE A")) foundKey = "TLE D";
+
+  // ==========================================
+  // 6. SI ON NE TROUVE PAS, ON CHERCHE PAR DEFAUT
+  // ==========================================
   if (!foundKey) {
     foundKey = Object.keys(SCHOOL_FEES_CONFIG).find((key) =>
       clsUpper.includes(key) || key.includes(clsUpper)
@@ -264,6 +305,7 @@ export const getExactInstallments = (studentClass = "", totalScolariteFixe = 0) 
     return SCHOOL_FEES_CONFIG[foundKey];
   }
 
+  // Si la classe est inconnue, on met 50/25/25
   return {
     v1: Math.round(totalScolariteFixe * 0.5),
     v2: Math.round(totalScolariteFixe * 0.25),
