@@ -1206,6 +1206,8 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
         <div style={{ display: "flex", minHeight: "100vh", background: "#f8fafc" }}>
            <style>{`
         @media print {
+                  .no-print { display: none !important; }
+          .print-only { display: block !important; }
           @page {
             size: A5 portrait;
             margin: 3mm;
