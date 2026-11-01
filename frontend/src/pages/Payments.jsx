@@ -1068,7 +1068,7 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
     montant: montant
   }));
 
-      const studentsStatusMap = students.map(st => {
+     const studentsStatusMap = students.map(st => {
     const stPays = payments.filter(
       p =>
         String(p.student_id) === String(st.id) &&
@@ -1082,7 +1082,7 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
     const fDetails = getFeeDetails(st);
     
     const totalExigibleSt = fDetails.total + EXTRA_FEES.INSCRIPTION_FEE + EXTRA_FEES.PAPER_RAME_FEE;
-    const reste = Math.max(0, totalExigibleSt - totalPaye);
+    const resteGlobal = Math.max(0, totalExigibleSt - totalPaye);
 
     // Calcul des tranches selon la classe
     const exactInstallments = getExactInstallments(st.classe || st.class_name, fDetails.total);
@@ -1090,16 +1090,20 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
     const v2 = exactInstallments.v2 || 0;
     const v3 = exactInstallments.v3 || 0;
 
-    // ✅ NOUVEAU : Calcul du montant exact payé sur chaque tranche
+    // ✅ NOUVEAU : Calcul de ce qu'il RESTE à payer pour chaque tranche
     let resteArgent = totalPaye;
+    
     const payeT1 = Math.min(resteArgent, v1);
     resteArgent -= payeT1;
-    
+    const resteT1 = Math.max(0, v1 - payeT1);
+
     const payeT2 = Math.min(resteArgent, v2);
     resteArgent -= payeT2;
-    
+    const resteT2 = Math.max(0, v2 - payeT2);
+
     const payeT3 = Math.min(resteArgent, v3);
     resteArgent -= payeT3;
+    const resteT3 = Math.max(0, v3 - payeT3);
 
     // Vérification des frais annexes
     const allStPays = payments.filter(p => String(p.student_id) === String(st.id) && !p.is_cancelled);
@@ -1107,9 +1111,15 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
     const hasRame = allStPays.some(p => p.paye_rame === true);
 
     return { 
-      ...st, totalPaye, totalExigibleSt, reste, 
-      v1, v2, v3, payeT1, payeT2, payeT3, 
-      hasInscription, hasRame 
+      ...st, 
+      totalPaye, 
+      totalExigibleSt, 
+      reste: resteGlobal, 
+      resteT1, 
+      resteT2, 
+      resteT3, 
+      hasInscription, 
+      hasRame 
     };
   });
 
@@ -1625,16 +1635,12 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
                 {currentDisplayedImpayes.map((st) => {
                   const { nomFormatted, prenomFormatted } = formatNomPrenom(st.nom, st.prenom);
                   
-                  // Petite fonction pour afficher le chiffre en couleur
-                  const renderTranche = (paye, total) => {
-                    const isSolde = paye >= total;
-                    const isPartiel = paye > 0 && paye < total;
-                    const color = isSolde ? "#16a34a" : isPartiel ? "#d97706" : "#dc2626"; // Vert, Orange, Rouge
-                    return (
-                      <span style={{ color, fontWeight: "bold", fontSize: "12px" }}>
-                        {paye > 0 ? paye.toLocaleString() : "0"} F
-                      </span>
-                    );
+                                    // ✅ Nouvelle fonction : Affiche ce qu'il reste à payer pour chaque tranche
+                  const renderReste = (reste) => {
+                    if (reste === 0) {
+                      return <span style={{ color: "#16a34a", fontWeight: "bold", fontSize: "14px" }}>✅</span>;
+                    }
+                    return <span style={{ color: "#dc2626", fontWeight: "bold", fontSize: "12px" }}>{reste.toLocaleString()} F</span>;
                   };
 
                   return (
@@ -1643,12 +1649,12 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
                       <td style={{ padding: "10px" }}>{st.classe || "-"}</td>
                       <td style={{ padding: "10px", color: "#dc2626", fontWeight: "bold" }}>{st.reste.toLocaleString()} CFA</td>
                       
-                      {/* ✅ Affichage des chiffres pour chaque tranche */}
-                      <td style={{ padding: "10px", textAlign: "center" }}>{renderTranche(st.payeT1, st.v1)}</td>
-                      <td style={{ padding: "10px", textAlign: "center" }}>{renderTranche(st.payeT2, st.v2)}</td>
-                      <td style={{ padding: "10px", textAlign: "center" }}>{renderTranche(st.payeT3, st.v3)}</td>
+                      {/* ✅ Affichage de ce qu'il RESTE à payer sur chaque tranche */}
+                      <td style={{ padding: "10px", textAlign: "center" }}>{renderReste(st.resteT1)}</td>
+                      <td style={{ padding: "10px", textAlign: "center" }}>{renderReste(st.resteT2)}</td>
+                      <td style={{ padding: "10px", textAlign: "center" }}>{renderReste(st.resteT3)}</td>
                       
-                      {/* Inscription et Rame restent en ✅/❌ car ce sont des forfaits fixes */}
+                      {/* Inscription et Rame restent en ✅/❌ */}
                       <td style={{ padding: "10px", textAlign: "center" }}>{st.hasInscription ? "✅" : "❌"}</td>
                       <td style={{ padding: "10px", textAlign: "center" }}>{st.hasRame ? "✅" : "❌"}</td>
 
