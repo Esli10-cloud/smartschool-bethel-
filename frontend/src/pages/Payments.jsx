@@ -245,7 +245,11 @@ export const getExactInstallments = (studentClass = "", totalScolariteFixe = 0) 
     };
   }
 
+  // ✅ La formule magique pour enlever les accents
   const clsUpper = String(studentClass).toUpperCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  
+  // ✅ LA LIGNE QUI MANQUAIT (c'est elle qui causait l'erreur)
+  let foundKey = null;
 
   // ==========================================
   // 1. ÉLECTRONIQUE / ÉLECTROTECHNIQUE
@@ -265,7 +269,7 @@ export const getExactInstallments = (studentClass = "", totalScolariteFixe = 0) 
   }
 
   // ==========================================
-  // 2. GÉNIE CIVIL (On cherche "CIVIL" et non "GC")
+  // 2. GÉNIE CIVIL
   // ==========================================
   else if (clsUpper.includes("CAP") && (clsUpper.includes("CIVIL") || clsUpper.includes("GC"))) {
     foundKey = "CAP 1";
@@ -306,23 +310,22 @@ export const getExactInstallments = (studentClass = "", totalScolariteFixe = 0) 
   // ==========================================
   // 5. ENSEIGNEMENT GÉNÉRAL
   // ==========================================
-  else if (clsUpper.includes("6EME") || clsUpper.includes("6EME")) {
+  else if (clsUpper.includes("6EME")) {
     foundKey = "6EME";
-  } else if (clsUpper.includes("5EME") || clsUpper.includes("5EME")) {
+  } else if (clsUpper.includes("5EME")) {
     foundKey = "5EME";
-  } else if (clsUpper.includes("4EME") || clsUpper.includes("4EME")) {
+  } else if (clsUpper.includes("4EME")) {
     foundKey = "4EME";
-  } else if (clsUpper.includes("3EME") || clsUpper.includes("3EME")) {
+  } else if (clsUpper.includes("3EME")) {
     foundKey = "3EME";
   } else if (clsUpper.includes("2ND AC") || clsUpper.includes("2NDE")) {
     foundKey = "2ND AC";
   } else if (clsUpper.includes("1ERE D") || clsUpper.includes("1ERE A") || clsUpper.includes("TLE D") || clsUpper.includes("TLE A")) {
-    // On utilise TLE D car les prix sont les mêmes pour toutes ces classes
     foundKey = "TLE D"; 
   }
 
   // ==========================================
-  // 6. RECHERCHE DE SECOURS (si non trouvé au-dessus)
+  // 6. RECHERCHE DE SECOURS
   // ==========================================
   if (!foundKey) {
     foundKey = Object.keys(SCHOOL_FEES_CONFIG).find((key) =>
@@ -334,7 +337,7 @@ export const getExactInstallments = (studentClass = "", totalScolariteFixe = 0) 
     return SCHOOL_FEES_CONFIG[foundKey];
   }
 
-  // Si la classe est inconnue, on met 50/25/25
+  // Si la classe est inconnue
   return {
     v1: Math.round(totalScolariteFixe * 0.5),
     v2: Math.round(totalScolariteFixe * 0.25),
