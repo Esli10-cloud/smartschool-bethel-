@@ -981,7 +981,7 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
     montant: montant
   }));
 
-    const studentsStatusMap = students.map(st => {
+      const studentsStatusMap = students.map(st => {
     const stPays = payments.filter(
       p =>
         String(p.student_id) === String(st.id) &&
@@ -994,33 +994,42 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
     );
     const fDetails = getFeeDetails(st);
     
-    // ✅ On ajoute l'inscription ET la rame pour le total attendu
     const totalExigibleSt = fDetails.total + EXTRA_FEES.INSCRIPTION_FEE + EXTRA_FEES.PAPER_RAME_FEE;
     const reste = Math.max(0, totalExigibleSt - totalPaye);
 
-    // ✅ NOUVEAU : Calcul des tranches selon la classe
+    // Calcul des tranches selon la classe
     const exactInstallments = getExactInstallments(st.classe || st.class_name, fDetails.total);
     const v1 = exactInstallments.v1 || 0;
     const v2 = exactInstallments.v2 || 0;
     const v3 = exactInstallments.v3 || 0;
 
-    // ✅ NOUVEAU : Vérification si l'élève a payé assez pour valider chaque tranche
-    const hasT1 = totalPaye >= v1;
-    const hasT2 = totalPaye >= (v1 + v2);
-    const hasT3 = totalPaye >= (v1 + v2 + v3);
+    // ✅ NOUVEAU : Calcul du montant exact payé sur chaque tranche
+    let resteArgent = totalPaye;
+    const payeT1 = Math.min(resteArgent, v1);
+    resteArgent -= payeT1;
+    
+    const payeT2 = Math.min(resteArgent, v2);
+    resteArgent -= payeT2;
+    
+    const payeT3 = Math.min(resteArgent, v3);
+    resteArgent -= payeT3;
 
-    // ✅ NOUVEAU : Vérification des frais annexes déjà payés
+    // Vérification des frais annexes
     const allStPays = payments.filter(p => String(p.student_id) === String(st.id) && !p.is_cancelled);
     const hasInscription = allStPays.some(p => p.paye_inscription === true);
     const hasRame = allStPays.some(p => p.paye_rame === true);
 
-    return { ...st, totalPaye, totalExigibleSt, reste, hasT1, hasT2, hasT3, hasInscription, hasRame };
+    return { 
+      ...st, totalPaye, totalExigibleSt, reste, 
+      v1, v2, v3, payeT1, payeT2, payeT3, 
+      hasInscription, hasRame 
+    };
   });
 
   const listeImpayes = studentsStatusMap.filter(s => s.reste > 0);
   const totalImpayesGlobal = listeImpayes.reduce((sum, s) => sum + s.reste, 0);
 
-  const filteredImpayes = listeImpayes.filter(s => {
+    const filteredImpayes = listeImpayes.filter(s => {
     const sClasse = s.classe ? s.classe.trim().toUpperCase() : "";
     const matchClass = filterClassImpayes === "Tous" || sClasse === filterClassImpayes;
     const search = searchTermImpayes.toLowerCase();
@@ -1031,14 +1040,20 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
 
     if (!matchClass || !matchSearch) return false;
 
-    // ✅ NOUVEAU : Filtrage selon le statut sélectionné dans le menu
-    if (filterImpayeType === "T1_NonPaye") return !s.hasT1;
-    if (filterImpayeType === "T2_NonPaye") return !s.hasT2;
-    if (filterImpayeType === "T3_NonPaye") return !s.hasT3;
+    if (filterImpayeType === "T1_NonPaye") return s.payeT1 < s.v1;
+    if (filterImpayeType === "T2_NonPaye") return s.payeT2 < s.v2;
+    if (filterImpayeType === "T3_NonPaye") return s.payeT3 < s.v3;
     if (filterImpayeType === "Inscription_NonPaye") return !s.hasInscription;
     if (filterImpayeType === "Rame_NonPaye") return !s.hasRame;
 
-    return true; // Si "Tous" est sélectionné
+    return true; 
+  }).sort((a, b) => {
+    // ✅ NOUVEAU : Tri par classe, puis par nom
+    const classA = (a.classe || "").toUpperCase();
+    const classB = (b.classe || "").toUpperCase();
+    if (classA < classB) return -1;
+    if (classA > classB) return 1;
+    return (a.nom || "").localeCompare(b.nom || "");
   });
 
   const totalPagesImpayes = Math.ceil(filteredImpayes.length / itemsPerPage) || 1;
@@ -1519,31 +1534,46 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
                       <th className="no-print" style={{ padding: "14px 10px", textAlign: "right" }}>Action</th>
                     </tr>
                   </thead>
-                  <tbody>
-                                          {currentDisplayedImpayes.map((st) => {
-                        const { nomFormatted, prenomFormatted } = formatNomPrenom(st.nom, st.prenom);
-                        return (
-                          <tr key={st.id} style={{ borderBottom: "1px solid #f1f5f9", fontSize: "13px" }}>
-                            <td style={{ padding: "10px", fontWeight: "600", color: "#1e293b" }}>{nomFormatted} {prenomFormatted}</td>
-                            <td style={{ padding: "10px" }}>{st.classe || "-"}</td>
-                            <td style={{ padding: "10px", color: "#dc2626", fontWeight: "bold" }}>{st.reste.toLocaleString()} CFA</td>
-                            
-                            {/* ✅ NOUVEAU : Affichage des statuts */}
-                            <td style={{ padding: "10px", textAlign: "center" }}>{st.hasT1 ? "✅" : "❌"}</td>
-                            <td style={{ padding: "10px", textAlign: "center" }}>{st.hasT2 ? "✅" : "❌"}</td>
-                            <td style={{ padding: "10px", textAlign: "center" }}>{st.hasT3 ? "✅" : "❌"}</td>
-                            <td style={{ padding: "10px", textAlign: "center" }}>{st.hasInscription ? "✅" : "❌"}</td>
-                            <td style={{ padding: "10px", textAlign: "center" }}>{st.hasRame ? "✅" : "❌"}</td>
+                              <tbody>
+                {currentDisplayedImpayes.map((st) => {
+                  const { nomFormatted, prenomFormatted } = formatNomPrenom(st.nom, st.prenom);
+                  
+                  // Petite fonction pour afficher le chiffre en couleur
+                  const renderTranche = (paye, total) => {
+                    const isSolde = paye >= total;
+                    const isPartiel = paye > 0 && paye < total;
+                    const color = isSolde ? "#16a34a" : isPartiel ? "#d97706" : "#dc2626"; // Vert, Orange, Rouge
+                    return (
+                      <span style={{ color, fontWeight: "bold", fontSize: "12px" }}>
+                        {paye > 0 ? paye.toLocaleString() : "0"} F
+                      </span>
+                    );
+                  };
 
-                            <td className="no-print" style={{ padding: "10px", textAlign: "right" }}>
-                              <button onClick={() => { setSelectedStudentId(st.id); setPayInscription(true); setPayPaperRame(false); setPayDortoir(false); setIsModalOpen(true); }} style={{ background: "#eff6ff", color: "#2563eb", border: "1px solid #bfdbfe", padding: "6px 10px", borderRadius: "6px", fontWeight: "600", cursor: "pointer", fontSize: "12px" }}>
-                                Encaisser
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                  </tbody>
+                  return (
+                    <tr key={st.id} style={{ borderBottom: "1px solid #f1f5f9", fontSize: "13px" }}>
+                      <td style={{ padding: "10px", fontWeight: "600", color: "#1e293b" }}>{nomFormatted} {prenomFormatted}</td>
+                      <td style={{ padding: "10px" }}>{st.classe || "-"}</td>
+                      <td style={{ padding: "10px", color: "#dc2626", fontWeight: "bold" }}>{st.reste.toLocaleString()} CFA</td>
+                      
+                      {/* ✅ Affichage des chiffres pour chaque tranche */}
+                      <td style={{ padding: "10px", textAlign: "center" }}>{renderTranche(st.payeT1, st.v1)}</td>
+                      <td style={{ padding: "10px", textAlign: "center" }}>{renderTranche(st.payeT2, st.v2)}</td>
+                      <td style={{ padding: "10px", textAlign: "center" }}>{renderTranche(st.payeT3, st.v3)}</td>
+                      
+                      {/* Inscription et Rame restent en ✅/❌ car ce sont des forfaits fixes */}
+                      <td style={{ padding: "10px", textAlign: "center" }}>{st.hasInscription ? "✅" : "❌"}</td>
+                      <td style={{ padding: "10px", textAlign: "center" }}>{st.hasRame ? "✅" : "❌"}</td>
+
+                      <td className="no-print" style={{ padding: "10px", textAlign: "right" }}>
+                        <button onClick={() => { setSelectedStudentId(st.id); setPayInscription(true); setPayPaperRame(false); setPayDortoir(false); setIsModalOpen(true); }} style={{ background: "#eff6ff", color: "#2563eb", border: "1px solid #bfdbfe", padding: "6px 10px", borderRadius: "6px", fontWeight: "600", cursor: "pointer", fontSize: "12px" }}>
+                          Encaisser
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
                 </table>
 
                 {totalPagesImpayes > 1 && (
