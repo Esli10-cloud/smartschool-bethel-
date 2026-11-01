@@ -1068,7 +1068,7 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
     montant: montant
   }));
 
-     const studentsStatusMap = students.map(st => {
+      const studentsStatusMap = students.map(st => {
     const stPays = payments.filter(
       p =>
         String(p.student_id) === String(st.id) &&
@@ -1081,8 +1081,9 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
     );
     const fDetails = getFeeDetails(st);
     
+    // Le total attendu (Scolarité + Frais)
     const totalExigibleSt = fDetails.total + EXTRA_FEES.INSCRIPTION_FEE + EXTRA_FEES.PAPER_RAME_FEE;
-    const resteGlobal = Math.max(0, totalExigibleSt - totalPaye);
+    const reste = Math.max(0, totalExigibleSt - totalPaye);
 
     // Calcul des tranches selon la classe
     const exactInstallments = getExactInstallments(st.classe || st.class_name, fDetails.total);
@@ -1090,7 +1091,7 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
     const v2 = exactInstallments.v2 || 0;
     const v3 = exactInstallments.v3 || 0;
 
-    // ✅ NOUVEAU : Calcul de ce qu'il RESTE à payer pour chaque tranche
+    // Calcul de ce qu'il RESTE à payer pour chaque tranche
     let resteArgent = totalPaye;
     
     const payeT1 = Math.min(resteArgent, v1);
@@ -1110,16 +1111,20 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
     const hasInscription = allStPays.some(p => p.paye_inscription === true);
     const hasRame = allStPays.some(p => p.paye_rame === true);
 
+    // ✅ NOUVEAU : Calcul du reste pour les frais annexes
+    const resteInscription = hasInscription ? 0 : EXTRA_FEES.INSCRIPTION_FEE;
+    const resteRame = hasRame ? 0 : EXTRA_FEES.PAPER_RAME_FEE;
+
     return { 
       ...st, 
       totalPaye, 
       totalExigibleSt, 
-      reste: resteGlobal, 
+      reste: reste, 
       resteT1, 
       resteT2, 
       resteT3, 
-      hasInscription, 
-      hasRame 
+      resteInscription, 
+      resteRame 
     };
   });
 
@@ -1631,16 +1636,14 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
                       <th className="no-print" style={{ padding: "14px 10px", textAlign: "right" }}>Action</th>
                     </tr>
                   </thead>
-                              <tbody>
+                                <tbody>
                 {currentDisplayedImpayes.map((st) => {
                   const { nomFormatted, prenomFormatted } = formatNomPrenom(st.nom, st.prenom);
                   
-                                    // ✅ Nouvelle fonction : Affiche ce qu'il reste à payer pour chaque tranche
-                  const renderReste = (reste) => {
-                    if (reste === 0) {
-                      return <span style={{ color: "#16a34a", fontWeight: "bold", fontSize: "14px" }}>✅</span>;
-                    }
-                    return <span style={{ color: "#dc2626", fontWeight: "bold", fontSize: "12px" }}>{reste.toLocaleString()} F</span>;
+                  // Fonction pour afficher joliment le reste
+                  const afficherReste = (montant) => {
+                    if (montant === 0) return <span style={{ color: "#16a34a", fontWeight: "bold" }}>✅</span>;
+                    return <span style={{ color: "#dc2626", fontWeight: "bold" }}>{montant.toLocaleString()} F</span>;
                   };
 
                   return (
@@ -1649,14 +1652,14 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
                       <td style={{ padding: "10px" }}>{st.classe || "-"}</td>
                       <td style={{ padding: "10px", color: "#dc2626", fontWeight: "bold" }}>{st.reste.toLocaleString()} CFA</td>
                       
-                      {/* ✅ Affichage de ce qu'il RESTE à payer sur chaque tranche */}
-                      <td style={{ padding: "10px", textAlign: "center" }}>{renderReste(st.resteT1)}</td>
-                      <td style={{ padding: "10px", textAlign: "center" }}>{renderReste(st.resteT2)}</td>
-                      <td style={{ padding: "10px", textAlign: "center" }}>{renderReste(st.resteT3)}</td>
+                      {/* ✅ Affichage des montants restants pour chaque tranche */}
+                      <td style={{ padding: "10px", textAlign: "center" }}>{afficherReste(st.resteT1)}</td>
+                      <td style={{ padding: "10px", textAlign: "center" }}>{afficherReste(st.resteT2)}</td>
+                      <td style={{ padding: "10px", textAlign: "center" }}>{afficherReste(st.resteT3)}</td>
                       
-                      {/* Inscription et Rame restent en ✅/❌ */}
-                      <td style={{ padding: "10px", textAlign: "center" }}>{st.hasInscription ? "✅" : "❌"}</td>
-                      <td style={{ padding: "10px", textAlign: "center" }}>{st.hasRame ? "✅" : "❌"}</td>
+                      {/* ✅ Affichage des montants restants pour les frais annexes */}
+                      <td style={{ padding: "10px", textAlign: "center" }}>{afficherReste(st.resteInscription)}</td>
+                      <td style={{ padding: "10px", textAlign: "center" }}>{afficherReste(st.resteRame)}</td>
 
                       <td className="no-print" style={{ padding: "10px", textAlign: "right" }}>
                         <button onClick={() => { setSelectedStudentId(st.id); setPayInscription(true); setPayPaperRame(false); setPayDortoir(false); setIsModalOpen(true); }} style={{ background: "#eff6ff", color: "#2563eb", border: "1px solid #bfdbfe", padding: "6px 10px", borderRadius: "6px", fontWeight: "600", cursor: "pointer", fontSize: "12px" }}>
@@ -1666,7 +1669,7 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
                     </tr>
                   );
                 })}
-              </tbody>
+              </tbody>           
                 </table>
 
                 {totalPagesImpayes > 1 && (
