@@ -1447,7 +1447,7 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
 
               <div style={{ background: "white", borderRadius: "12px", border: "1px solid #e2e8f0", overflow: "hidden" }}>
                 <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                                    <thead>
+                                                     <thead>
                     <tr style={{ background: "#dc2626", color: "white", textAlign: "left", fontSize: "13px" }}>
                       <th style={{ padding: "14px 10px" }}>Nom & Prénom</th>
                       <th style={{ padding: "14px 10px" }}>Classe</th>
@@ -1456,26 +1456,14 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
                       <th className="no-print" style={{ padding: "14px 10px", textAlign: "right" }}>Action</th>
                     </tr>
                   </thead>
-                               <tbody>
+              <tbody>
                 {currentDisplayedImpayes.map((st) => {
                   const { nomFormatted, prenomFormatted } = formatNomPrenom(st.nom, st.prenom);
                   
-                  // Fonction pour créer une petite étiquette (badge) rouge
                   const BadgeImpaye = ({ label, montant }) => {
-                    if (montant === 0) return null; // On ne l'affiche pas si c'est payé
+                    if (montant === 0) return null; 
                     return (
-                      <span style={{ 
-                        display: "inline-block", 
-                        background: "#fef2f2", 
-                        color: "#dc2626", 
-                        border: "1px solid #fecaca", 
-                        padding: "4px 8px", 
-                        borderRadius: "6px", 
-                        fontSize: "12px", 
-                        marginRight: "6px", 
-                        marginBottom: "4px",
-                        fontWeight: "600"
-                      }}>
+                      <span style={{ display: "inline-block", background: "#fef2f2", color: "#dc2626", border: "1px solid #fecaca", padding: "4px 8px", borderRadius: "6px", fontSize: "12px", marginRight: "6px", marginBottom: "4px", fontWeight: "600" }}>
                         {label} : {montant.toLocaleString()} F
                       </span>
                     );
@@ -1487,7 +1475,6 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
                       <td style={{ padding: "12px 10px" }}>{st.classe || "-"}</td>
                       <td style={{ padding: "12px 10px", color: "#dc2626", fontWeight: "bold" }}>{st.reste.toLocaleString()} CFA</td>
                       
-                      {/* ✅ La colonne des détails avec les étiquettes */}
                       <td style={{ padding: "12px 10px" }}>
                         <BadgeImpaye label="1ère Tr" montant={st.resteT1} />
                         <BadgeImpaye label="2ème Tr" montant={st.resteT2} />
@@ -1495,7 +1482,6 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
                         <BadgeImpaye label="Inscription" montant={st.resteInscription} />
                         <BadgeImpaye label="Rame" montant={st.resteRame} />
                         
-                        {/* Si tout est payé, on affiche un petit message vert */}
                         {st.resteT1 === 0 && st.resteT2 === 0 && st.resteT3 === 0 && st.resteInscription === 0 && st.resteRame === 0 && (
                           <span style={{ color: "#16a34a", fontWeight: "bold", fontSize: "12px" }}>✅ Aucun impayé</span>
                         )}
