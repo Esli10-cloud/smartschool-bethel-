@@ -333,8 +333,21 @@ export const getExactInstallments = (studentClass = "", totalScolariteFixe = 0) 
     );
   }
 
-  if (foundKey && SCHOOL_FEES_CONFIG[foundKey]) {
-    return SCHOOL_FEES_CONFIG[foundKey];
+    if (foundKey && SCHOOL_FEES_CONFIG[foundKey]) {
+    const standardFees = SCHOOL_FEES_CONFIG[foundKey];
+    
+    // ✅ Si le prix de l'élève est différent du prix standard (ex: élève affecté), 
+    // on calcule des tranches proportionnelles
+    if (totalScolariteFixe > 0 && totalScolariteFixe !== standardFees.total) {
+      return {
+        v1: Math.round(totalScolariteFixe * 0.5),
+        v2: Math.round(totalScolariteFixe * 0.25),
+        v3: Math.round(totalScolariteFixe * 0.25),
+        total: totalScolariteFixe
+      };
+    }
+    
+    return standardFees;
   }
 
   // Si la classe est inconnue
