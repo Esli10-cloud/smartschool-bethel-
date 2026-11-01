@@ -1584,7 +1584,7 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
             </div>
           )}
 
-          {activeTab === "impayes" && (
+                    {activeTab === "impayes" && (
             <div id="impayes-print" style={{ background: "white", padding: "24px", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
               <OfficialHeader />
 
@@ -1600,7 +1600,7 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
                   <select value={filterClassImpayes} onChange={(e) => { setFilterClassImpayes(e.target.value); setCurrentPageImpayes(1); }} style={{ padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1" }}>
                     {classesList.map(c => <option key={c} value={c}>Classe : {c}</option>)}
                   </select>
-                  {/* ✅ NOUVEAU FILTRE DES TRANCHES */}
+                  
                   <select 
                     value={filterImpayeType} 
                     onChange={(e) => { setFilterImpayeType(e.target.value); setCurrentPageImpayes(1); }} 
@@ -1613,72 +1613,75 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
                     <option value="Inscription_NonPaye">❌ Inscription (Non payée)</option>
                     <option value="Rame_NonPaye">❌ Rame de papier (Non payée)</option>
                   </select>
+
                   <div style={{ position: "relative" }}>
                     <Search size={18} style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "#94a3b8" }} />
                     <input type="text" placeholder="Filtrer un impayé..." value={searchTermImpayes} onChange={(e) => { setSearchTermImpayes(e.target.value); setCurrentPageImpayes(1); }} style={{ padding: "10px 10px 10px 36px", borderRadius: "8px", border: "1px solid #cbd5e1", width: "220px" }} />
                   </div>
 
                   <button onClick={() => window.print()} style={{ display: "flex", alignItems: "center", gap: "6px", background: "#475569", color: "white", padding: "10px 16px", borderRadius: "8px", border: "none", fontWeight: "600", cursor: "pointer" }}>
-                    <Printer size={16} /> Imprimer Liste
+                    <Printer size={16} /> Liste d'imprimer
                   </button>
                 </div>
               </div>
 
-              <div style={{ borderRadius: "8px", overflow: "hidden", border: "1px solid #e2e8f0" }}>
+              {/* ========================================================= */}
+              {/* ✅ TABLEAU À L'ÉCRAN (Caché à l'impression)               */}
+              {/* ========================================================= */}
+              <div className="no-print" style={{ borderRadius: "8px", overflow: "hidden", border: "1px solid #e2e8f0" }}>
                 <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                                                  <thead>
+                  <thead>
                     <tr style={{ background: "#dc2626", color: "white", textAlign: "left", fontSize: "13px" }}>
                       <th style={{ padding: "14px 10px" }}>Nom & Prénom</th>
                       <th style={{ padding: "14px 10px" }}>Classe</th>
                       <th style={{ padding: "14px 10px" }}>Reste Global</th>
                       <th style={{ padding: "14px 10px" }}>Détails des impayés</th>
-                      <th className="no-print" style={{ padding: "14px 10px", textAlign: "right" }}>Action</th>
+                      <th style={{ padding: "14px 10px", textAlign: "right" }}>Action</th>
                     </tr>
                   </thead>
-                                              <tbody>
-                {currentDisplayedImpayes.map((st) => {
-                  const { nomFormatted, prenomFormatted } = formatNomPrenom(st.nom, st.prenom);
-                  
-                  // Fonction pour créer les petites étiquettes rouges
-                  const BadgeImpaye = ({ label, montant }) => {
-                    if (montant === 0) return null; 
-                    return (
-                      <span style={{ display: "inline-block", background: "#fef2f2", color: "#dc2626", border: "1px solid #fecaca", padding: "4px 8px", borderRadius: "6px", fontSize: "12px", marginRight: "6px", marginBottom: "4px", fontWeight: "600" }}>
-                        {label} : {montant.toLocaleString()} F
-                      </span>
-                    );
-                  };
-
-                  return (
-                    <tr key={st.id} style={{ borderBottom: "1px solid #f1f5f9", fontSize: "13px" }}>
-                      <td style={{ padding: "10px", fontWeight: "600", color: "#1e293b" }}>{nomFormatted} {prenomFormatted}</td>
-                      <td style={{ padding: "10px" }}>{st.classe || "-"}</td>
-                      <td style={{ padding: "10px", color: "#dc2626", fontWeight: "bold" }}>{st.reste.toLocaleString()} CFA</td>
+                  <tbody>
+                    {currentDisplayedImpayes.map((st) => {
+                      const { nomFormatted, prenomFormatted } = formatNomPrenom(st.nom, st.prenom);
                       
-                      {/* La colonne avec les étiquettes */}
-                      <td style={{ padding: "10px" }}>
-                        <BadgeImpaye label="1ère Tr" montant={st.resteT1} />
-                        <BadgeImpaye label="2ème Tr" montant={st.resteT2} />
-                        <BadgeImpaye label="3ème Tr" montant={st.resteT3} />
-                        <BadgeImpaye label="Inscription" montant={st.resteInscription} />
-                        <BadgeImpaye label="Rame" montant={st.resteRame} />
-                        
-                        {st.resteT1 === 0 && st.resteT2 === 0 && st.resteT3 === 0 && st.resteInscription === 0 && st.resteRame === 0 && (
-                          <span style={{ color: "#16a34a", fontWeight: "bold", fontSize: "12px" }}>✅ Aucun impayé</span>
-                        )}
-                      </td>
+                      const BadgeImpaye = ({ label, montant }) => {
+                        if (montant === 0) return null; 
+                        return (
+                          <span style={{ display: "inline-block", background: "#fef2f2", color: "#dc2626", border: "1px solid #fecaca", padding: "4px 8px", borderRadius: "6px", fontSize: "12px", marginRight: "6px", marginBottom: "4px", fontWeight: "600" }}>
+                            {label} : {montant.toLocaleString()} F
+                          </span>
+                        );
+                      };
 
-                      <td className="no-print" style={{ padding: "10px", textAlign: "right" }}>
-                        <button onClick={() => { setSelectedStudentId(st.id); setPayInscription(true); setPayPaperRame(false); setPayDortoir(false); setIsModalOpen(true); }} style={{ background: "#eff6ff", color: "#2563eb", border: "1px solid #bfdbfe", padding: "6px 10px", borderRadius: "6px", fontWeight: "600", cursor: "pointer", fontSize: "12px" }}>
-                          Encaisser
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>        
+                      return (
+                        <tr key={st.id} style={{ borderBottom: "1px solid #f1f5f9", fontSize: "13px" }}>
+                          <td style={{ padding: "10px", fontWeight: "600", color: "#1e293b" }}>{nomFormatted} {prenomFormatted}</td>
+                          <td style={{ padding: "10px" }}>{st.classe || "-"}</td>
+                          <td style={{ padding: "10px", color: "#dc2626", fontWeight: "bold" }}>{st.reste.toLocaleString()} CFA</td>
+                          
+                          <td style={{ padding: "10px" }}>
+                            <BadgeImpaye label="1ère Tr" montant={st.resteT1} />
+                            <BadgeImpaye label="2ème Tr" montant={st.resteT2} />
+                            <BadgeImpaye label="3ème Tr" montant={st.resteT3} />
+                            <BadgeImpaye label="Inscription" montant={st.resteInscription} />
+                            <BadgeImpaye label="Rame" montant={st.resteRame} />
+                            
+                            {st.resteT1 === 0 && st.resteT2 === 0 && st.resteT3 === 0 && st.resteInscription === 0 && st.resteRame === 0 && (
+                              <span style={{ color: "#16a34a", fontWeight: "bold", fontSize: "12px" }}>✅ Aucun impayé</span>
+                            )}
+                          </td>
+
+                          <td className="no-print" style={{ padding: "10px", textAlign: "right" }}>
+                            <button onClick={() => { setSelectedStudentId(st.id); setPayInscription(true); setPayPaperRame(false); setPayDortoir(false); setIsModalOpen(true); }} style={{ background: "#eff6ff", color: "#2563eb", border: "1px solid #bfdbfe", padding: "6px 10px", borderRadius: "6px", fontWeight: "600", cursor: "pointer", fontSize: "12px" }}>
+                              Encaisser
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
                 </table>
 
+                {/* PAGINATION */}
                 {totalPagesImpayes > 1 && (
                   <div className="no-print" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 20px", background: "#f8fafc", borderTop: "1px solid #e2e8f0" }}>
                     <div style={{ fontSize: "13px", color: "#64748b" }}>Page <strong>{currentPageImpayes}</strong> sur <strong>{totalPagesImpayes}</strong></div>
@@ -1692,6 +1695,65 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
                     </div>
                   </div>
                 )}
+              </div>
+
+              {/* ========================================================= */}
+              {/* ✅ TABLEAU POUR L'IMPRESSION (Caché à l'écran)            */}
+              {/* ========================================================= */}
+              <div className="print-only" style={{ display: "none" }}>
+                {Object.entries(
+                  filteredImpayes.reduce((acc, st) => {
+                    const cls = st.classe || "Sans classe";
+                    if (!acc[cls]) acc[cls] = [];
+                    acc[cls].push(st);
+                    return acc;
+                  }, {})
+                ).map(([cls, students], index) => (
+                  <div key={cls} style={{ pageBreakBefore: index > 0 ? 'always' : 'auto', marginBottom: '30px' }}>
+                    
+                    <h3 style={{ textAlign: "center", fontSize: "16px", fontWeight: "bold", marginBottom: "10px", textTransform: "uppercase" }}>
+                      ÉTAT DES IMPAYÉS - CLASSE : {cls}
+                    </h3>
+
+                    <table style={{ width: "100%", borderCollapse: "collapse", border: "1px solid #000" }}>
+                      <thead>
+                        <tr style={{ background: "#f1f5f9" }}>
+                          <th style={{ border: "1px solid #000", padding: "8px", textAlign: "left", width: "25%" }}>Nom & Prénom</th>
+                          <th style={{ border: "1px solid #000", padding: "8px", textAlign: "left", width: "20%" }}>Reste Global</th>
+                          <th style={{ border: "1px solid #000", padding: "8px", textAlign: "left", width: "55%" }}>Détails des impayés</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {students.map((st) => {
+                          const { nomFormatted, prenomFormatted } = formatNomPrenom(st.nom, st.prenom);
+                          
+                          const BadgePrint = ({ label, montant }) => {
+                            if (montant === 0) return null;
+                            return (
+                              <span style={{ display: "inline-block", border: "1px solid #000", padding: "2px 6px", borderRadius: "4px", fontSize: "11px", marginRight: "4px", marginBottom: "4px" }}>
+                                {label} : {montant.toLocaleString()} F
+                              </span>
+                            );
+                          };
+
+                          return (
+                            <tr key={st.id} style={{ borderBottom: "1px solid #000" }}>
+                              <td style={{ border: "1px solid #000", padding: "8px", fontWeight: "bold" }}>{nomFormatted} {prenomFormatted}</td>
+                              <td style={{ border: "1px solid #000", padding: "8px", fontWeight: "bold" }}>{st.reste.toLocaleString()} CFA</td>
+                              <td style={{ border: "1px solid #000", padding: "8px" }}>
+                                <BadgePrint label="1ère Tr" montant={st.resteT1} />
+                                <BadgePrint label="2ème Tr" montant={st.resteT2} />
+                                <BadgePrint label="3ème Tr" montant={st.resteT3} />
+                                <BadgePrint label="Inscription" montant={st.resteInscription} />
+                                <BadgePrint label="Rame" montant={st.resteRame} />
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                ))}
               </div>
             </div>
           )}
