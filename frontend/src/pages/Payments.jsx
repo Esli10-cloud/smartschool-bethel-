@@ -1447,67 +1447,69 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
 
               <div style={{ background: "white", borderRadius: "12px", border: "1px solid #e2e8f0", overflow: "hidden" }}>
                 <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                  <thead>
-                    <tr style={{ background: "#2563eb", color: "white", textAlign: "left", fontSize: "14px" }}>
-                      <th style={{ padding: "14px 20px" }}>N° Trans.</th>
-                      <th style={{ padding: "14px 20px" }}>Date</th>
-                      <th style={{ padding: "14px 20px" }}>Matricule</th>
-                      <th style={{ padding: "14px 20px" }}>Nom & Prénom</th>
-                      <th style={{ padding: "14px 20px" }}>Classe</th>
-                      <th style={{ padding: "14px 20px" }}>Mode</th>
-                      <th style={{ padding: "14px 20px" }}>Montant Versé</th>
-                      <th style={{ padding: "14px 20px", textAlign: "right" }}>Actions</th>
+                                    <thead>
+                    <tr style={{ background: "#dc2626", color: "white", textAlign: "left", fontSize: "13px" }}>
+                      <th style={{ padding: "14px 10px" }}>Nom & Prénom</th>
+                      <th style={{ padding: "14px 10px" }}>Classe</th>
+                      <th style={{ padding: "14px 10px" }}>Reste Global</th>
+                      <th style={{ padding: "14px 10px" }}>Détails des impayés</th>
+                      <th className="no-print" style={{ padding: "14px 10px", textAlign: "right" }}>Action</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    {loading ? (
-                      <tr><td colSpan="8" style={{ padding: "30px", textAlign: "center", color: "#64748b" }}>Chargement des données...</td></tr>
-                    ) : currentDisplayedPayments.length === 0 ? (
-                      <tr><td colSpan="8" style={{ padding: "30px", textAlign: "center", color: "#64748b" }}>Aucun versement trouvé.</td></tr>
-                    ) : (
-                      currentDisplayedPayments.map((p) => {
-                        const val = parseInt(p.amount || p.montant || 0, 10);
-                        const { nomFormatted, prenomFormatted } = formatNomPrenom(p.students?.nom, p.students?.prenom);
-                        return (
-                          <tr key={p.id} style={{ borderBottom: "1px solid #f1f5f9", fontSize: "14px", opacity: p.is_cancelled ? 0.6 : 1, background: p.is_cancelled ? "#fef2f2" : "white" }}>
-                            <td style={{ padding: "14px 20px", fontWeight: "600" }}>
-                              #{p.id}
-                              {p.is_cancelled && <span style={{ marginLeft: "6px", color: "#dc2626", fontSize: "11px", fontWeight: "800" }}>(ANNULÉ)</span>}
-                            </td>
-                            <td style={{ padding: "14px 20px", color: "#64748b" }}>{p.created_at ? new Date(p.created_at).toLocaleDateString("en-GB") : "-"}</td>
-                            <td style={{ padding: "14px 20px", fontWeight: "600", color: "#2563eb" }}>{p.students?.matricule || "-"}</td>
-                            <td style={{ padding: "14px 20px", fontWeight: "600", color: "#1e293b" }}>{nomFormatted} {prenomFormatted}</td>
-                            <td style={{ padding: "14px 20px" }}>{p.students?.classe || "-"}</td>
-                            <td style={{ padding: "14px 20px" }}>
-                              <span style={{ padding: "4px 8px", borderRadius: "4px", fontSize: "12px", background: "#f1f5f9", color: "#334155", fontWeight: "600" }}>{p.mode || "Espèces"}</span>
-                            </td>
-                            <td style={{ padding: "14px 20px", color: p.is_cancelled ? "#991b1b" : "#16a34a", fontWeight: "700", textDecoration: p.is_cancelled ? "line-through" : "none" }}>
-                              {val.toLocaleString()} CFA
-                            </td>
-                            <td style={{ padding: "14px 20px", textAlign: "right" }}>
-                              <div style={{ display: "flex", gap: "6px", justifyContent: "flex-end" }}>
-                                {!p.is_cancelled && (
-                                  <>
-                                    <button onClick={() => { setSelectedStudentId(p.student_id); setPayInscription(true); setPayPaperRame(false); setPayDortoir(false); setIsModalOpen(true); }} style={{ background: "#f0fdf4", color: "#16a34a", border: "1px solid #bbf7d0", padding: "6px 10px", borderRadius: "6px", fontWeight: "600", cursor: "pointer", fontSize: "12px" }}>
-                                      <Plus size={14} /> Compléter
-                                    </button>
-                                    <button onClick={() => openReceipt(p)} style={{ background: "#eff6ff", color: "#2563eb", border: "1px solid #bfdbfe", padding: "6px 10px", borderRadius: "6px", fontWeight: "600", cursor: "pointer", fontSize: "12px" }}>
-                                      <Printer size={14} /> Reçu
-                                    </button>
-                                  </>
-                                )}
-                                {currentUser.role === "admin" && !p.is_cancelled && (
-                                  <button onClick={() => { setPaymentToCancel(p); setCancelModalOpen(true); }} title="Annuler le reçu (Stornage)" style={{ background: "#fef2f2", color: "#dc2626", border: "1px solid #fecaca", padding: "6px 10px", borderRadius: "6px", fontWeight: "600", cursor: "pointer", fontSize: "12px" }}>
-                                    <Ban size={14} /> Annuler
-                                  </button>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })
-                    )}
-                  </tbody>
+                               <tbody>
+                {currentDisplayedImpayes.map((st) => {
+                  const { nomFormatted, prenomFormatted } = formatNomPrenom(st.nom, st.prenom);
+                  
+                  // Fonction pour créer une petite étiquette (badge) rouge
+                  const BadgeImpaye = ({ label, montant }) => {
+                    if (montant === 0) return null; // On ne l'affiche pas si c'est payé
+                    return (
+                      <span style={{ 
+                        display: "inline-block", 
+                        background: "#fef2f2", 
+                        color: "#dc2626", 
+                        border: "1px solid #fecaca", 
+                        padding: "4px 8px", 
+                        borderRadius: "6px", 
+                        fontSize: "12px", 
+                        marginRight: "6px", 
+                        marginBottom: "4px",
+                        fontWeight: "600"
+                      }}>
+                        {label} : {montant.toLocaleString()} F
+                      </span>
+                    );
+                  };
+
+                  return (
+                    <tr key={st.id} style={{ borderBottom: "1px solid #f1f5f9", fontSize: "13px" }}>
+                      <td style={{ padding: "12px 10px", fontWeight: "600", color: "#1e293b" }}>{nomFormatted} {prenomFormatted}</td>
+                      <td style={{ padding: "12px 10px" }}>{st.classe || "-"}</td>
+                      <td style={{ padding: "12px 10px", color: "#dc2626", fontWeight: "bold" }}>{st.reste.toLocaleString()} CFA</td>
+                      
+                      {/* ✅ La colonne des détails avec les étiquettes */}
+                      <td style={{ padding: "12px 10px" }}>
+                        <BadgeImpaye label="1ère Tr" montant={st.resteT1} />
+                        <BadgeImpaye label="2ème Tr" montant={st.resteT2} />
+                        <BadgeImpaye label="3ème Tr" montant={st.resteT3} />
+                        <BadgeImpaye label="Inscription" montant={st.resteInscription} />
+                        <BadgeImpaye label="Rame" montant={st.resteRame} />
+                        
+                        {/* Si tout est payé, on affiche un petit message vert */}
+                        {st.resteT1 === 0 && st.resteT2 === 0 && st.resteT3 === 0 && st.resteInscription === 0 && st.resteRame === 0 && (
+                          <span style={{ color: "#16a34a", fontWeight: "bold", fontSize: "12px" }}>✅ Aucun impayé</span>
+                        )}
+                      </td>
+
+                      <td className="no-print" style={{ padding: "12px 10px", textAlign: "right" }}>
+                        <button onClick={() => { setSelectedStudentId(st.id); setPayInscription(true); setPayPaperRame(false); setPayDortoir(false); setIsModalOpen(true); }} style={{ background: "#eff6ff", color: "#2563eb", border: "1px solid #bfdbfe", padding: "6px 10px", borderRadius: "6px", fontWeight: "600", cursor: "pointer", fontSize: "12px" }}>
+                          Encaisser
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
                 </table>
 
                 {totalPagesHistory > 1 && (
