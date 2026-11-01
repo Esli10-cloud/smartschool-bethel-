@@ -1068,7 +1068,7 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
     montant: montant
   }));
 
-      const studentsStatusMap = students.map(st => {
+        const studentsStatusMap = students.map(st => {
     const stPays = payments.filter(
       p =>
         String(p.student_id) === String(st.id) &&
@@ -1081,8 +1081,16 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
     );
     const fDetails = getFeeDetails(st);
     
-    // Le total attendu (Scolarité + Frais)
-    const totalExigibleSt = fDetails.total + EXTRA_FEES.INSCRIPTION_FEE + EXTRA_FEES.PAPER_RAME_FEE;
+    // ✅ NOUVEAU : On vérifie d'abord si l'inscription et la rame sont payées
+    const allStPays = payments.filter(p => String(p.student_id) === String(st.id) && !p.is_cancelled);
+    const hasInscription = allStPays.some(p => p.paye_inscription === true);
+    const hasRame = allStPays.some(p => p.paye_rame === true);
+
+    // On calcule le total attendu en enlevant les frais déjà payés
+    const fraisInscriptionAttendus = hasInscription ? 0 : EXTRA_FEES.INSCRIPTION_FEE;
+    const fraisRameAttendus = hasRame ? 0 : EXTRA_FEES.PAPER_RAME_FEE;
+    
+    const totalExigibleSt = fDetails.total + fraisInscriptionAttendus + fraisRameAttendus;
     const reste = Math.max(0, totalExigibleSt - totalPaye);
 
     // Calcul des tranches selon la classe
@@ -1106,12 +1114,7 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
     resteArgent -= payeT3;
     const resteT3 = Math.max(0, v3 - payeT3);
 
-    // Vérification des frais annexes
-    const allStPays = payments.filter(p => String(p.student_id) === String(st.id) && !p.is_cancelled);
-    const hasInscription = allStPays.some(p => p.paye_inscription === true);
-    const hasRame = allStPays.some(p => p.paye_rame === true);
-
-    // ✅ NOUVEAU : Calcul du reste pour les frais annexes
+    // Calcul du reste pour les frais annexes
     const resteInscription = hasInscription ? 0 : EXTRA_FEES.INSCRIPTION_FEE;
     const resteRame = hasRame ? 0 : EXTRA_FEES.PAPER_RAME_FEE;
 
