@@ -1068,7 +1068,7 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
     montant: montant
   }));
 
-        const studentsStatusMap = students.map(st => {
+         const studentsStatusMap = students.map(st => {
     const stPays = payments.filter(
       p =>
         String(p.student_id) === String(st.id) &&
@@ -1081,25 +1081,17 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
     );
     const fDetails = getFeeDetails(st);
     
-    // ✅ NOUVEAU : On vérifie d'abord si l'inscription et la rame sont payées
-    const allStPays = payments.filter(p => String(p.student_id) === String(st.id) && !p.is_cancelled);
-    const hasInscription = allStPays.some(p => p.paye_inscription === true);
-    const hasRame = allStPays.some(p => p.paye_rame === true);
-
-    // On calcule le total attendu en enlevant les frais déjà payés
-    const fraisInscriptionAttendus = hasInscription ? 0 : EXTRA_FEES.INSCRIPTION_FEE;
-    const fraisRameAttendus = hasRame ? 0 : EXTRA_FEES.PAPER_RAME_FEE;
-    
-    const totalExigibleSt = fDetails.total + fraisInscriptionAttendus + fraisRameAttendus;
+    // 1. Calcul du total attendu (Scolarité + Frais)
+    const totalExigibleSt = fDetails.total + EXTRA_FEES.INSCRIPTION_FEE + EXTRA_FEES.PAPER_RAME_FEE;
     const reste = Math.max(0, totalExigibleSt - totalPaye);
 
-    // Calcul des tranches selon la classe
+    // 2. Calcul des tranches selon la classe
     const exactInstallments = getExactInstallments(st.classe || st.class_name, fDetails.total);
     const v1 = exactInstallments.v1 || 0;
     const v2 = exactInstallments.v2 || 0;
     const v3 = exactInstallments.v3 || 0;
 
-    // Calcul de ce qu'il RESTE à payer pour chaque tranche
+    // 3. Calcul de ce qu'il RESTE à payer pour chaque tranche
     let resteArgent = totalPaye;
     
     const payeT1 = Math.min(resteArgent, v1);
@@ -1114,7 +1106,12 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
     resteArgent -= payeT3;
     const resteT3 = Math.max(0, v3 - payeT3);
 
-    // Calcul du reste pour les frais annexes
+    // 4. Vérification des frais annexes
+    const allStPays = payments.filter(p => String(p.student_id) === String(st.id) && !p.is_cancelled);
+    const hasInscription = allStPays.some(p => p.paye_inscription === true);
+    const hasRame = allStPays.some(p => p.paye_rame === true);
+
+    // ✅ Calcul du reste exact pour l'inscription et la rame
     const resteInscription = hasInscription ? 0 : EXTRA_FEES.INSCRIPTION_FEE;
     const resteRame = hasRame ? 0 : EXTRA_FEES.PAPER_RAME_FEE;
 
@@ -1122,7 +1119,7 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
       ...st, 
       totalPaye, 
       totalExigibleSt, 
-      reste: reste, 
+      reste, 
       resteT1, 
       resteT2, 
       resteT3, 
@@ -1153,7 +1150,6 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
     if (filterImpayeType === "Rame_NonPaye") return s.resteRame > 0;
 
     return true; // Si "Tous" est sélectionné
-  });
   }).sort((a, b) => {
     // ✅ NOUVEAU : Tri par classe, puis par nom
     const classA = (a.classe || "").toUpperCase();
