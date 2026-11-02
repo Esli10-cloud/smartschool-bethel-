@@ -1741,11 +1741,11 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
                               <td style={{ border: "1px solid #000", padding: "8px", fontWeight: "bold" }}>{nomFormatted} {prenomFormatted}</td>
                               <td style={{ border: "1px solid #000", padding: "8px", fontWeight: "bold" }}>{st.reste.toLocaleString()} CFA</td>
                               <td style={{ border: "1px solid #000", padding: "8px" }}>
-                                <BadgePrint label="1ère Tr" montant={st.resteT1} />
-                                <BadgePrint label="2ème Tr" montant={st.resteT2} />
-                                <BadgePrint label="3ème Tr" montant={st.resteT3} />
-                                <BadgePrint label="Inscription" montant={st.resteInscription} />
-                                <BadgePrint label="Rame" montant={st.resteRame} />
+                                                           <BadgeImpaye label="1ère Tr" montant={st.resteT1} />
+                            <BadgeImpaye label="2ème Tr" montant={st.resteT2} />
+                            <BadgeImpaye label="3ème Tr" montant={st.resteT3} />
+                            <BadgeImpaye label="Inscription" montant={st.resteInscription} />
+                            <BadgeImpaye label="Rame" montant={st.resteRame} />
                               </td>
                             </tr>
                           );
