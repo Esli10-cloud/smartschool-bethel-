@@ -1659,11 +1659,11 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
                           <td style={{ padding: "10px", color: "#dc2626", fontWeight: "bold" }}>{st.reste.toLocaleString()} CFA</td>
                           
                           <td style={{ padding: "10px" }}>
-                            <BadgeImpaye label="1ère Tr" montant={st.resteT1} />
-                            <BadgeImpaye label="2ème Tr" montant={st.resteT2} />
-                            <BadgeImpaye label="3ème Tr" montant={st.resteT3} />
-                            <BadgeImpaye label="Inscription" montant={st.resteInscription} />
-                            <BadgeImpaye label="Rame" montant={st.resteRame} />
+                                                       {(filterImpayeType === "Tous" || filterImpayeType === "T1_NonPaye") && <BadgeImpaye label="1ère Tr" montant={st.resteT1} />}
+                            {(filterImpayeType === "Tous" || filterImpayeType === "T2_NonPaye") && <BadgeImpaye label="2ème Tr" montant={st.resteT2} />}
+                            {(filterImpayeType === "Tous" || filterImpayeType === "T3_NonPaye") && <BadgeImpaye label="3ème Tr" montant={st.resteT3} />}
+                            {(filterImpayeType === "Tous" || filterImpayeType === "Inscription_NonPaye") && <BadgeImpaye label="Inscription" montant={st.resteInscription} />}
+                            {(filterImpayeType === "Tous" || filterImpayeType === "Rame_NonPaye") && <BadgeImpaye label="Rame" montant={st.resteRame} />}
                             
                             {st.resteT1 === 0 && st.resteT2 === 0 && st.resteT3 === 0 && st.resteInscription === 0 && st.resteRame === 0 && (
                               <span style={{ color: "#16a34a", fontWeight: "bold", fontSize: "12px" }}>✅ Aucun impayé</span>
