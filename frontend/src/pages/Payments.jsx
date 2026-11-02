@@ -1134,7 +1134,7 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
   const listeImpayes = studentsStatusMap.filter(s => s.reste > 0);
   const totalImpayesGlobal = listeImpayes.reduce((sum, s) => sum + s.reste, 0);
 
-    const filteredImpayes = listeImpayes.filter(s => {
+     const filteredImpayes = listeImpayes.filter(s => {
     const sClasse = s.classe ? s.classe.trim().toUpperCase() : "";
     const matchClass = filterClassImpayes === "Tous" || sClasse === filterClassImpayes;
     const search = searchTermImpayes.toLowerCase();
@@ -1145,13 +1145,15 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
 
     if (!matchClass || !matchSearch) return false;
 
-    if (filterImpayeType === "T1_NonPaye") return s.payeT1 < s.v1;
-    if (filterImpayeType === "T2_NonPaye") return s.payeT2 < s.v2;
-    if (filterImpayeType === "T3_NonPaye") return s.payeT3 < s.v3;
-    if (filterImpayeType === "Inscription_NonPaye") return !s.hasInscription;
-    if (filterImpayeType === "Rame_NonPaye") return !s.hasRame;
+    // ✅ CORRECTION : On utilise les nouvelles variables "reste"
+    if (filterImpayeType === "T1_NonPaye") return s.resteT1 > 0;
+    if (filterImpayeType === "T2_NonPaye") return s.resteT2 > 0;
+    if (filterImpayeType === "T3_NonPaye") return s.resteT3 > 0;
+    if (filterImpayeType === "Inscription_NonPaye") return s.resteInscription > 0;
+    if (filterImpayeType === "Rame_NonPaye") return s.resteRame > 0;
 
-    return true; 
+    return true; // Si "Tous" est sélectionné
+  });
   }).sort((a, b) => {
     // ✅ NOUVEAU : Tri par classe, puis par nom
     const classA = (a.classe || "").toUpperCase();
