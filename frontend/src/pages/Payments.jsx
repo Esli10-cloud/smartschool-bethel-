@@ -1741,11 +1741,11 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
                               <td style={{ border: "1px solid #000", padding: "8px", fontWeight: "bold" }}>{nomFormatted} {prenomFormatted}</td>
                               <td style={{ border: "1px solid #000", padding: "8px", fontWeight: "bold" }}>{st.reste.toLocaleString()} CFA</td>
                               <td style={{ border: "1px solid #000", padding: "8px" }}>
-                                                           <BadgeImpaye label="1ère Tr" montant={st.resteT1} />
-                            <BadgeImpaye label="2ème Tr" montant={st.resteT2} />
-                            <BadgeImpaye label="3ème Tr" montant={st.resteT3} />
-                            <BadgeImpaye label="Inscription" montant={st.resteInscription} />
-                            <BadgeImpaye label="Rame" montant={st.resteRame} />
+                                                               {(filterImpayeType === "Tous" || filterImpayeType === "T1_NonPaye") && <BadgePrint label="1ère Tr" montant={st.resteT1} />}
+                                {(filterImpayeType === "Tous" || filterImpayeType === "T2_NonPaye") && <BadgePrint label="2ème Tr" montant={st.resteT2} />}
+                                {(filterImpayeType === "Tous" || filterImpayeType === "T3_NonPaye") && <BadgePrint label="3ème Tr" montant={st.resteT3} />}
+                                {(filterImpayeType === "Tous" || filterImpayeType === "Inscription_NonPaye") && <BadgePrint label="Inscription" montant={st.resteInscription} />}
+                                {(filterImpayeType === "Tous" || filterImpayeType === "Rame_NonPaye") && <BadgePrint label="Rame" montant={st.resteRame} />}                        
                               </td>
                             </tr>
                           );
