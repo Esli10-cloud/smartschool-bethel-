@@ -1315,7 +1315,7 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
                   color: activeTab === "impayes" ? "white" : "#64748b"
                 }}
               >
-                <AlertCircle size={16} /> Impayés ({listeImpayes.length})
+                             <AlertCircle size={16} /> Impayés ({studentsStatusMap.filter(s => s.reste > 0).length})
               </button>
               <button
                 onClick={() => setActiveTab("exonerations")}
