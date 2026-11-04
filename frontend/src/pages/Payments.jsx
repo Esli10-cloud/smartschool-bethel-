@@ -395,6 +395,7 @@ export default function Payments() {
   // Recherche & Filtres Impayés
   const [searchTermStudent, setSearchTermStudent] = useState("");
   const [searchTermImpayes, setSearchTermImpayes] = useState("");
+    const [viewMode, setViewMode] = useState("registre");
   const [filterClassImpayes, setFilterClassImpayes] = useState("Tous");
   const [caisseDate, setCaisseDate] = useState(new Date().toISOString().split('T')[0]);
 
@@ -1068,7 +1069,8 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
     montant: montant
   }));
 
-         const studentsStatusMap = students.map(st => {
+    const studentsStatusMap = students.map(st => {
+    // 1. Calcul de l'argent versé pour la scolarité
     const stPays = payments.filter(
       p =>
         String(p.student_id) === String(st.id) &&
@@ -1081,57 +1083,52 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
     );
     const fDetails = getFeeDetails(st);
     
-    // 1. Calcul du total attendu (Scolarité + Frais)
     const totalExigibleSt = fDetails.total + EXTRA_FEES.INSCRIPTION_FEE + EXTRA_FEES.PAPER_RAME_FEE;
     const reste = Math.max(0, totalExigibleSt - totalPaye);
 
-    // 2. Calcul des tranches selon la classe
+    // 2. Répartition sur les tranches
     const exactInstallments = getExactInstallments(st.classe || st.class_name, fDetails.total);
     const v1 = exactInstallments.v1 || 0;
     const v2 = exactInstallments.v2 || 0;
     const v3 = exactInstallments.v3 || 0;
 
-    // 3. Calcul de ce qu'il RESTE à payer pour chaque tranche
     let resteArgent = totalPaye;
-    
     const payeT1 = Math.min(resteArgent, v1);
     resteArgent -= payeT1;
-    const resteT1 = Math.max(0, v1 - payeT1);
-
     const payeT2 = Math.min(resteArgent, v2);
     resteArgent -= payeT2;
-    const resteT2 = Math.max(0, v2 - payeT2);
-
     const payeT3 = Math.min(resteArgent, v3);
-    resteArgent -= payeT3;
-    const resteT3 = Math.max(0, v3 - payeT3);
 
-    // 4. Vérification des frais annexes
+    // 3. Vérification des autres frais
     const allStPays = payments.filter(p => String(p.student_id) === String(st.id) && !p.is_cancelled);
     const hasInscription = allStPays.some(p => p.paye_inscription === true);
     const hasRame = allStPays.some(p => p.paye_rame === true);
+    const hasDortoir = allStPays.some(p => p.paye_dortoir === true || (p.notes && p.notes.includes("Dortoir")));
+    const hasDossier = allStPays.some(p => p.notes && p.notes.includes("Dossiers:"));
 
-    // ✅ Calcul du reste exact pour l'inscription et la rame
-    const resteInscription = hasInscription ? 0 : EXTRA_FEES.INSCRIPTION_FEE;
-    const resteRame = hasRame ? 0 : EXTRA_FEES.PAPER_RAME_FEE;
+    // 4. Calcul du montant des tenues
+    let montantTenues = 0;
+    const uniformDetails = getUniformDetailsFromNotes(allStPays.map(p => p.notes).join(" "));
+    if (uniformDetails.length > 0) {
+      montantTenues = uniformDetails.reduce((sum, item) => sum + item.total, 0);
+    }
 
     return { 
       ...st, 
       totalPaye, 
       totalExigibleSt, 
       reste, 
-      resteT1, 
-      resteT2, 
-      resteT3, 
-      resteInscription, 
-      resteRame 
+      payeT1, payeT2, payeT3, 
+      hasInscription, 
+      hasRame,
+      hasDortoir,
+      hasDossier,
+      montantTenues
     };
   });
 
-  const listeImpayes = studentsStatusMap.filter(s => s.reste > 0);
-  const totalImpayesGlobal = listeImpayes.reduce((sum, s) => sum + s.reste, 0);
-
-     const filteredImpayes = listeImpayes.filter(s => {
+  // ✅ Filtrer par classe et par recherche (avec tri par classe)
+  const filteredImpayes = studentsStatusMap.filter(s => {
     const sClasse = s.classe ? s.classe.trim().toUpperCase() : "";
     const matchClass = filterClassImpayes === "Tous" || sClasse === filterClassImpayes;
     const search = searchTermImpayes.toLowerCase();
@@ -1140,18 +1137,8 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
                         (s.prenom?.toLowerCase() || "").includes(search) || 
                         (s.matricule?.toLowerCase() || "").includes(search);
 
-    if (!matchClass || !matchSearch) return false;
-
-    // ✅ CORRECTION : On utilise les nouvelles variables "reste"
-    if (filterImpayeType === "T1_NonPaye") return s.resteT1 > 0;
-    if (filterImpayeType === "T2_NonPaye") return s.resteT2 > 0;
-    if (filterImpayeType === "T3_NonPaye") return s.resteT3 > 0;
-    if (filterImpayeType === "Inscription_NonPaye") return s.resteInscription > 0;
-    if (filterImpayeType === "Rame_NonPaye") return s.resteRame > 0;
-
-    return true; // Si "Tous" est sélectionné
+    return matchClass && matchSearch;
   }).sort((a, b) => {
-    // ✅ NOUVEAU : Tri par classe, puis par nom
     const classA = (a.classe || "").toUpperCase();
     const classB = (b.classe || "").toUpperCase();
     if (classA < classB) return -1;
@@ -1159,9 +1146,9 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
     return (a.nom || "").localeCompare(b.nom || "");
   });
 
+  // ✅ Pagination
   const totalPagesImpayes = Math.ceil(filteredImpayes.length / itemsPerPage) || 1;
   const currentDisplayedImpayes = filteredImpayes.slice((currentPageImpayes - 1) * itemsPerPage, currentPageImpayes * itemsPerPage);
-
   const totalPagesExonerations = Math.ceil(students.length / itemsPerPage) || 1;
   const currentDisplayedExonerations = students.slice((currentPageExonerations - 1) * itemsPerPage, currentPageExonerations * itemsPerPage);
 
@@ -1204,6 +1191,15 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
         <div style={{ display: "flex", minHeight: "100vh", background: "#f8fafc" }}>
            <style>{`
         @media print {
+                  /* ✅ Création d'une page spéciale Paysage pour les tableaux */
+          @page landscapePage {
+            size: A4 landscape;
+            margin: 10mm;
+          }
+
+          .landscape-table {
+            page: landscapePage;
+          }
                   .no-print { display: none !important; }
           .print-only { display: block !important; }
           @page {
@@ -1584,179 +1580,267 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
             </div>
           )}
 
-                    {activeTab === "impayes" && (
+                  {activeTab === "impayes" && (
             <div id="impayes-print" style={{ background: "white", padding: "24px", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
               <OfficialHeader />
 
+              {/* EN-TÊTE ET FILTRES */}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", flexWrap: "wrap", gap: "10px" }}>
                 <div>
-                  <h2 style={{ margin: 0, fontSize: "18px", color: "#1e293b" }}>État des Impayés et Relances [{academicYear}]</h2>
+                  <h2 style={{ margin: 0, fontSize: "18px", color: "#1e293b" }}>
+                    {viewMode === "registre" ? "Registre Global des Versements" : 
+                     viewMode === "tenues" ? "Liste des Tenues" : 
+                     viewMode === "dortoir" ? "Liste du Dortoir" : "Liste des Frais de Dossier"}
+                  </h2>
                   <div style={{ fontSize: "13px", color: "#2563eb", fontWeight: "700", marginTop: "4px" }}>
                     Classe : {filterClassImpayes === "Tous" ? "Toutes les classes" : filterClassImpayes}
                   </div>
                 </div>
 
                 <div className="no-print" style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+                  <select 
+                    value={viewMode} 
+                    onChange={(e) => { setViewMode(e.target.value); setCurrentPageImpayes(1); }} 
+                    style={{ padding: "10px", borderRadius: "8px", border: "1px solid #2563eb", background: "#eff6ff", color: "#1e40af", fontWeight: "bold" }}
+                  >
+                    <option value="registre">📖 Registre Global (Scolarité)</option>
+                    <option value="tenues">👕 Tenues Scolaires</option>
+                    <option value="dortoir">🛏️ Dortoir / Internat</option>
+                    <option value="dossier">📁 Frais de Dossier</option>
+                  </select>
+
                   <select value={filterClassImpayes} onChange={(e) => { setFilterClassImpayes(e.target.value); setCurrentPageImpayes(1); }} style={{ padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1" }}>
                     {classesList.map(c => <option key={c} value={c}>Classe : {c}</option>)}
                   </select>
                   
-                  <select 
-                    value={filterImpayeType} 
-                    onChange={(e) => { setFilterImpayeType(e.target.value); setCurrentPageImpayes(1); }} 
-                    style={{ padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1", background: "#fef2f2", color: "#991b1b", fontWeight: "bold" }}
-                  >
-                    <option value="Tous">🚨 Tous les impayés</option>
-                    <option value="T1_NonPaye">❌ 1ère Tranche (Non payée)</option>
-                    <option value="T2_NonPaye">❌ 2ème Tranche (Non payée)</option>
-                    <option value="T3_NonPaye">❌ 3ème Tranche (Non payée)</option>
-                    <option value="Inscription_NonPaye">❌ Inscription (Non payée)</option>
-                    <option value="Rame_NonPaye">❌ Rame de papier (Non payée)</option>
-                  </select>
-
                   <div style={{ position: "relative" }}>
                     <Search size={18} style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "#94a3b8" }} />
-                    <input type="text" placeholder="Filtrer un impayé..." value={searchTermImpayes} onChange={(e) => { setSearchTermImpayes(e.target.value); setCurrentPageImpayes(1); }} style={{ padding: "10px 10px 10px 36px", borderRadius: "8px", border: "1px solid #cbd5e1", width: "220px" }} />
+                    <input type="text" placeholder="Rechercher..." value={searchTermImpayes} onChange={(e) => { setSearchTermImpayes(e.target.value); setCurrentPageImpayes(1); }} style={{ padding: "10px 10px 10px 36px", borderRadius: "8px", border: "1px solid #cbd5e1", width: "200px" }} />
                   </div>
 
                   <button onClick={() => window.print()} style={{ display: "flex", alignItems: "center", gap: "6px", background: "#475569", color: "white", padding: "10px 16px", borderRadius: "8px", border: "none", fontWeight: "600", cursor: "pointer" }}>
-                    <Printer size={16} /> Liste d'imprimer
+                    <Printer size={16} /> Imprimer
                   </button>
                 </div>
               </div>
 
-              {/* ========================================================= */}
-              {/* ✅ TABLEAU À L'ÉCRAN (Caché à l'impression)               */}
-              {/* ========================================================= */}
-              <div className="no-print" style={{ borderRadius: "8px", overflow: "hidden", border: "1px solid #e2e8f0" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                  <thead>
-                    <tr style={{ background: "#dc2626", color: "white", textAlign: "left", fontSize: "13px" }}>
-                      <th style={{ padding: "14px 10px" }}>Nom & Prénom</th>
-                      <th style={{ padding: "14px 10px" }}>Classe</th>
-                      <th style={{ padding: "14px 10px" }}>Reste Global</th>
-                      <th style={{ padding: "14px 10px" }}>Détails des impayés</th>
-                      <th style={{ padding: "14px 10px", textAlign: "right" }}>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {currentDisplayedImpayes.map((st) => {
-                      const { nomFormatted, prenomFormatted } = formatNomPrenom(st.nom, st.prenom);
-                      
-                      const BadgeImpaye = ({ label, montant }) => {
-                        if (montant === 0) return null; 
-                        return (
-                          <span style={{ display: "inline-block", background: "#fef2f2", color: "#dc2626", border: "1px solid #fecaca", padding: "4px 8px", borderRadius: "6px", fontSize: "12px", marginRight: "6px", marginBottom: "4px", fontWeight: "600" }}>
-                            {label} : {montant.toLocaleString()} F
-                          </span>
-                        );
-                      };
-
-                      return (
-                        <tr key={st.id} style={{ borderBottom: "1px solid #f1f5f9", fontSize: "13px" }}>
-                          <td style={{ padding: "10px", fontWeight: "600", color: "#1e293b" }}>{nomFormatted} {prenomFormatted}</td>
-                          <td style={{ padding: "10px" }}>{st.classe || "-"}</td>
-                          <td style={{ padding: "10px", color: "#dc2626", fontWeight: "bold" }}>{st.reste.toLocaleString()} CFA</td>
-                          
-                          <td style={{ padding: "10px" }}>
-                                                       {(filterImpayeType === "Tous" || filterImpayeType === "T1_NonPaye") && <BadgeImpaye label="1ère Tr" montant={st.resteT1} />}
-                            {(filterImpayeType === "Tous" || filterImpayeType === "T2_NonPaye") && <BadgeImpaye label="2ème Tr" montant={st.resteT2} />}
-                            {(filterImpayeType === "Tous" || filterImpayeType === "T3_NonPaye") && <BadgeImpaye label="3ème Tr" montant={st.resteT3} />}
-                            {(filterImpayeType === "Tous" || filterImpayeType === "Inscription_NonPaye") && <BadgeImpaye label="Inscription" montant={st.resteInscription} />}
-                            {(filterImpayeType === "Tous" || filterImpayeType === "Rame_NonPaye") && <BadgeImpaye label="Rame" montant={st.resteRame} />}
-                            
-                            {st.resteT1 === 0 && st.resteT2 === 0 && st.resteT3 === 0 && st.resteInscription === 0 && st.resteRame === 0 && (
-                              <span style={{ color: "#16a34a", fontWeight: "bold", fontSize: "12px" }}>✅ Aucun impayé</span>
-                            )}
-                          </td>
-
-                          <td className="no-print" style={{ padding: "10px", textAlign: "right" }}>
-                            <button onClick={() => { setSelectedStudentId(st.id); setPayInscription(true); setPayPaperRame(false); setPayDortoir(false); setIsModalOpen(true); }} style={{ background: "#eff6ff", color: "#2563eb", border: "1px solid #bfdbfe", padding: "6px 10px", borderRadius: "6px", fontWeight: "600", cursor: "pointer", fontSize: "12px" }}>
-                              Encaisser
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-
-                {/* PAGINATION */}
-                {totalPagesImpayes > 1 && (
-                  <div className="no-print" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 20px", background: "#f8fafc", borderTop: "1px solid #e2e8f0" }}>
-                    <div style={{ fontSize: "13px", color: "#64748b" }}>Page <strong>{currentPageImpayes}</strong> sur <strong>{totalPagesImpayes}</strong></div>
-                    <div style={{ display: "flex", gap: "8px" }}>
-                      <button onClick={() => setCurrentPageImpayes(prev => Math.max(prev - 1, 1))} disabled={currentPageImpayes === 1} style={{ padding: "6px 12px", borderRadius: "6px", border: "1px solid #cbd5e1", background: "white", cursor: "pointer" }}>
-                        <ChevronLeft size={16} /> Précédent
-                      </button>
-                      <button onClick={() => setCurrentPageImpayes(prev => Math.min(prev + 1, totalPagesImpayes))} disabled={currentPageImpayes === totalPagesImpayes} style={{ padding: "6px 12px", borderRadius: "6px", border: "1px solid #cbd5e1", background: "white", cursor: "pointer" }}>
-                        Suivant <ChevronRight size={16} />
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* ========================================================= */}
-              {/* ✅ TABLEAU POUR L'IMPRESSION (Caché à l'écran)            */}
-              {/* ========================================================= */}
-              <div className="print-only" style={{ display: "none" }}>
-                {Object.entries(
-                  filteredImpayes.reduce((acc, st) => {
-                    const cls = st.classe || "Sans classe";
-                    if (!acc[cls]) acc[cls] = [];
-                    acc[cls].push(st);
-                    return acc;
-                  }, {})
-                ).map(([cls, students], index) => (
-                  <div key={cls} style={{ pageBreakBefore: index > 0 ? 'always' : 'auto', marginBottom: '30px' }}>
-                    
-                    <h3 style={{ textAlign: "center", fontSize: "16px", fontWeight: "bold", marginBottom: "10px", textTransform: "uppercase" }}>
-                      ÉTAT DES IMPAYÉS - CLASSE : {cls}
-                    </h3>
-
-                    <table style={{ width: "100%", borderCollapse: "collapse", border: "1px solid #000" }}>
+              {/* TABLEAU À L'ÉCRAN */}
+              <div className="no-print" style={{ borderRadius: "8px", overflowX: "auto", border: "1px solid #e2e8f0" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "1100px" }}>
+                  
+                  {viewMode === "registre" && (
+                    <>
                       <thead>
-                        <tr style={{ background: "#f1f5f9" }}>
-                          <th style={{ border: "1px solid #000", padding: "8px", textAlign: "left", width: "25%" }}>Nom & Prénom</th>
-                          <th style={{ border: "1px solid #000", padding: "8px", textAlign: "left", width: "20%" }}>Reste Global</th>
-                          <th style={{ border: "1px solid #000", padding: "8px", textAlign: "left", width: "55%" }}>Détails des impayés</th>
+                        <tr style={{ background: "#1e293b", color: "white", textAlign: "left", fontSize: "12px" }}>
+                          <th style={{ padding: "12px 8px" }}>N°</th>
+                          <th style={{ padding: "12px 8px" }}>Noms Prénoms</th>
+                          <th style={{ padding: "12px 8px", textAlign: "center" }}>Inscription</th>
+                          <th style={{ padding: "12px 8px", textAlign: "center" }}>1ère v.</th>
+                          <th style={{ padding: "12px 8px", textAlign: "center" }}>2ème v.</th>
+                          <th style={{ padding: "12px 8px", textAlign: "center" }}>3ème v.</th>
+                          <th style={{ padding: "12px 8px", textAlign: "center" }}>Rame</th>
+                          <th style={{ padding: "12px 8px", textAlign: "center" }}>Droit d'inscr.</th>
+                          <th style={{ padding: "12px 8px", textAlign: "right" }}>Somme versée</th>
+                          <th style={{ padding: "12px 8px", textAlign: "right" }}>Scolarité</th>
+                          <th style={{ padding: "12px 8px", textAlign: "right" }}>Reste</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {students.map((st) => {
-                          const { nomFormatted, prenomFormatted } = formatNomPrenom(st.nom, st.prenom);
-                          
-                          const BadgePrint = ({ label, montant }) => {
-                            if (montant === 0) return null;
-                            return (
-                              <span style={{ display: "inline-block", border: "1px solid #000", padding: "2px 6px", borderRadius: "4px", fontSize: "11px", marginRight: "4px", marginBottom: "4px" }}>
-                                {label} : {montant.toLocaleString()} F
-                              </span>
-                            );
-                          };
+                        {currentDisplayedImpayes.map((st, index) => (
+                          <tr key={st.id} style={{ borderBottom: "1px solid #f1f5f9", fontSize: "12px" }}>
+                            <td style={{ padding: "10px 8px" }}>{index + 1}</td>
+                            <td style={{ padding: "10px 8px", fontWeight: "600", textTransform: "uppercase" }}>{st.nom} {st.prenom}</td>
+                            <td style={{ padding: "10px 8px", textAlign: "center" }}>{st.hasInscription ? "5 000" : "-"}</td>
+                            <td style={{ padding: "10px 8px", textAlign: "center" }}>{st.payeT1 > 0 ? st.payeT1.toLocaleString() : "-"}</td>
+                            <td style={{ padding: "10px 8px", textAlign: "center" }}>{st.payeT2 > 0 ? st.payeT2.toLocaleString() : "-"}</td>
+                            <td style={{ padding: "10px 8px", textAlign: "center" }}>{st.payeT3 > 0 ? st.payeT3.toLocaleString() : "-"}</td>
+                            <td style={{ padding: "10px 8px", textAlign: "center" }}>{st.hasRame ? "3 500" : "-"}</td>
+                            <td style={{ padding: "10px 8px", textAlign: "center" }}>{st.hasInscription ? "5 000" : "-"}</td>
+                            <td style={{ padding: "10px 8px", textAlign: "right", fontWeight: "bold", color: "#2563eb" }}>{st.totalPaye.toLocaleString()}</td>
+                            <td style={{ padding: "10px 8px", textAlign: "right", color: "#64748b" }}>{st.totalExigibleSt.toLocaleString()}</td>
+                            <td style={{ padding: "10px 8px", textAlign: "right", fontWeight: "bold", color: st.reste > 0 ? "#dc2626" : "#16a34a" }}>{st.reste.toLocaleString()}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot>
+                        <tr style={{ background: "#f8fafc", fontWeight: "bold", fontSize: "13px" }}>
+                          <td colSpan="8" style={{ padding: "12px 8px", textAlign: "right" }}>TOTAUX :</td>
+                          <td style={{ padding: "12px 8px", textAlign: "right", color: "#2563eb" }}>{currentDisplayedImpayes.reduce((sum, s) => sum + s.totalPaye, 0).toLocaleString()} F</td>
+                          <td style={{ padding: "12px 8px", textAlign: "right", color: "#64748b" }}>{currentDisplayedImpayes.reduce((sum, s) => sum + s.totalExigibleSt, 0).toLocaleString()} F</td>
+                          <td style={{ padding: "12px 8px", textAlign: "right", color: "#dc2626" }}>{currentDisplayedImpayes.reduce((sum, s) => sum + s.reste, 0).toLocaleString()} F</td>
+                        </tr>
+                      </tfoot>
+                    </>
+                  )}
 
-                          return (
-                            <tr key={st.id} style={{ borderBottom: "1px solid #000" }}>
-                              <td style={{ border: "1px solid #000", padding: "8px", fontWeight: "bold" }}>{nomFormatted} {prenomFormatted}</td>
-                              <td style={{ border: "1px solid #000", padding: "8px", fontWeight: "bold" }}>{st.reste.toLocaleString()} CFA</td>
-                              <td style={{ border: "1px solid #000", padding: "8px" }}>
-                                                               {(filterImpayeType === "Tous" || filterImpayeType === "T1_NonPaye") && <BadgePrint label="1ère Tr" montant={st.resteT1} />}
-                                {(filterImpayeType === "Tous" || filterImpayeType === "T2_NonPaye") && <BadgePrint label="2ème Tr" montant={st.resteT2} />}
-                                {(filterImpayeType === "Tous" || filterImpayeType === "T3_NonPaye") && <BadgePrint label="3ème Tr" montant={st.resteT3} />}
-                                {(filterImpayeType === "Tous" || filterImpayeType === "Inscription_NonPaye") && <BadgePrint label="Inscription" montant={st.resteInscription} />}
-                                {(filterImpayeType === "Tous" || filterImpayeType === "Rame_NonPaye") && <BadgePrint label="Rame" montant={st.resteRame} />}                        
-                              </td>
-                            </tr>
-                          );
-                        })}
+                  {viewMode === "tenues" && (
+                    <>
+                      <thead>
+                        <tr style={{ background: "#1e293b", color: "white", fontSize: "13px" }}>
+                          <th style={{ padding: "12px" }}>N°</th>
+                          <th style={{ padding: "12px" }}>Noms Prénoms</th>
+                          <th style={{ padding: "12px" }}>Classe</th>
+                          <th style={{ padding: "12px", textAlign: "right" }}>Montant Tenues Payé</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {currentDisplayedImpayes.map((st, index) => (
+                          <tr key={st.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                            <td style={{ padding: "10px" }}>{index + 1}</td>
+                            <td style={{ padding: "10px", fontWeight: "bold" }}>{st.nom} {st.prenom}</td>
+                            <td style={{ padding: "10px" }}>{st.classe}</td>
+                            <td style={{ padding: "10px", textAlign: "right", color: st.montantTenues > 0 ? "#16a34a" : "#dc2626", fontWeight: "bold" }}>{st.montantTenues > 0 ? `${st.montantTenues.toLocaleString()} F` : "Non payé"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </>
+                  )}
+
+                  {viewMode === "dortoir" && (
+                    <>
+                      <thead>
+                        <tr style={{ background: "#1e293b", color: "white", fontSize: "13px" }}>
+                          <th style={{ padding: "12px" }}>N°</th>
+                          <th style={{ padding: "12px" }}>Noms Prénoms</th>
+                          <th style={{ padding: "12px" }}>Classe</th>
+                          <th style={{ padding: "12px", textAlign: "center" }}>A payé le Dortoir ?</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {currentDisplayedImpayes.map((st, index) => (
+                          <tr key={st.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                            <td style={{ padding: "10px" }}>{index + 1}</td>
+                            <td style={{ padding: "10px", fontWeight: "bold" }}>{st.nom} {st.prenom}</td>
+                            <td style={{ padding: "10px" }}>{st.classe}</td>
+                            <td style={{ padding: "10px", textAlign: "center", fontWeight: "bold", color: st.hasDortoir ? "#16a34a" : "#dc2626" }}>{st.hasDortoir ? "✅ Oui" : "❌ Non"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </>
+                  )}
+
+                  {viewMode === "dossier" && (
+                    <>
+                      <thead>
+                        <tr style={{ background: "#1e293b", color: "white", fontSize: "13px" }}>
+                          <th style={{ padding: "12px" }}>N°</th>
+                          <th style={{ padding: "12px" }}>Noms Prénoms</th>
+                          <th style={{ padding: "12px" }}>Classe</th>
+                          <th style={{ padding: "12px", textAlign: "center" }}>A payé les Dossiers ?</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {currentDisplayedImpayes.map((st, index) => (
+                          <tr key={st.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                            <td style={{ padding: "10px" }}>{index + 1}</td>
+                            <td style={{ padding: "10px", fontWeight: "bold" }}>{st.nom} {st.prenom}</td>
+                            <td style={{ padding: "10px" }}>{st.classe}</td>
+                            <td style={{ padding: "10px", textAlign: "center", fontWeight: "bold", color: st.hasDossier ? "#16a34a" : "#dc2626" }}>{st.hasDossier ? "✅ Oui" : "❌ Non"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </>
+                  )}
+
+                </table>
+              </div>
+
+              {/* PAGINATION */}
+              {totalPagesImpayes > 1 && (
+                <div className="no-print" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 20px", background: "#f8fafc", borderTop: "1px solid #e2e8f0" }}>
+                  <div style={{ fontSize: "13px", color: "#64748b" }}>Page <strong>{currentPageImpayes}</strong> sur <strong>{totalPagesImpayes}</strong></div>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <button onClick={() => setCurrentPageImpayes(prev => Math.max(prev - 1, 1))} disabled={currentPageImpayes === 1} style={{ padding: "6px 12px", borderRadius: "6px", border: "1px solid #cbd5e1", background: "white", cursor: "pointer" }}><ChevronLeft size={16} /> Précédent</button>
+                    <button onClick={() => setCurrentPageImpayes(prev => Math.min(prev + 1, totalPagesImpayes))} disabled={currentPageImpayes === totalPagesImpayes} style={{ padding: "6px 12px", borderRadius: "6px", border: "1px solid #cbd5e1", background: "white", cursor: "pointer" }}>Suivant <ChevronRight size={16} /></button>
+                  </div>
+                </div>
+              )}
+
+              {/* ✅ TABLEAU D'IMPRESSION EN MODE PAYSAGE */}
+              <div className="print-only" style={{ display: "none" }}>
+                <div className="landscape-table" style={{ padding: "10px" }}>
+                  <h3 style={{ textAlign: "center", fontSize: "16px", fontWeight: "bold", marginBottom: "15px", textTransform: "uppercase" }}>
+                    {viewMode === "registre" ? "REGISTRE GLOBAL DES VERSEMENTS" : 
+                     viewMode === "tenues" ? "LISTE DES TENUES" : 
+                     viewMode === "dortoir" ? "LISTE DU DORTOIR" : "LISTE DES FRAIS DE DOSSIER"} - CLASSE : {filterClassImpayes === "Tous" ? "Toutes" : filterClassImpayes}
+                  </h3>
+                  
+                  {viewMode === "registre" ? (
+                    <table style={{ width: "100%", borderCollapse: "collapse", border: "1px solid #000", fontSize: "10px" }}>
+                      <thead>
+                        <tr style={{ background: "#f1f5f9" }}>
+                          <th style={{ border: "1px solid #000", padding: "6px" }}>N°</th>
+                          <th style={{ border: "1px solid #000", padding: "6px" }}>Noms Prénoms</th>
+                          <th style={{ border: "1px solid #000", padding: "6px" }}>Classe</th>
+                          <th style={{ border: "1px solid #000", padding: "6px" }}>Inscription</th>
+                          <th style={{ border: "1px solid #000", padding: "6px" }}>1ère v.</th>
+                          <th style={{ border: "1px solid #000", padding: "6px" }}>2ème v.</th>
+                          <th style={{ border: "1px solid #000", padding: "6px" }}>3ème v.</th>
+                          <th style={{ border: "1px solid #000", padding: "6px" }}>Rame</th>
+                          <th style={{ border: "1px solid #000", padding: "6px" }}>Droit</th>
+                          <th style={{ border: "1px solid #000", padding: "6px" }}>Somme</th>
+                          <th style={{ border: "1px solid #000", padding: "6px" }}>Scolarité</th>
+                          <th style={{ border: "1px solid #000", padding: "6px" }}>Reste</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredImpayes.map((st, index) => (
+                          <tr key={st.id} style={{ borderBottom: "1px solid #000" }}>
+                            <td style={{ border: "1px solid #000", padding: "6px", textAlign: "center" }}>{index + 1}</td>
+                            <td style={{ border: "1px solid #000", padding: "6px", fontWeight: "bold" }}>{st.nom} {st.prenom}</td>
+                            <td style={{ border: "1px solid #000", padding: "6px" }}>{st.classe}</td>
+                            <td style={{ border: "1px solid #000", padding: "6px", textAlign: "center" }}>{st.hasInscription ? "5 000" : "-"}</td>
+                            <td style={{ border: "1px solid #000", padding: "6px", textAlign: "center" }}>{st.payeT1 > 0 ? st.payeT1.toLocaleString() : "-"}</td>
+                            <td style={{ border: "1px solid #000", padding: "6px", textAlign: "center" }}>{st.payeT2 > 0 ? st.payeT2.toLocaleString() : "-"}</td>
+                            <td style={{ border: "1px solid #000", padding: "6px", textAlign: "center" }}>{st.payeT3 > 0 ? st.payeT3.toLocaleString() : "-"}</td>
+                            <td style={{ border: "1px solid #000", padding: "6px", textAlign: "center" }}>{st.hasRame ? "3 500" : "-"}</td>
+                            <td style={{ border: "1px solid #000", padding: "6px", textAlign: "center" }}>{st.hasInscription ? "5 000" : "-"}</td>
+                            <td style={{ border: "1px solid #000", padding: "6px", textAlign: "right", fontWeight: "bold" }}>{st.totalPaye.toLocaleString()}</td>
+                            <td style={{ border: "1px solid #000", padding: "6px", textAlign: "right" }}>{st.totalExigibleSt.toLocaleString()}</td>
+                            <td style={{ border: "1px solid #000", padding: "6px", textAlign: "right", fontWeight: "bold" }}>{st.reste.toLocaleString()}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot>
+                        <tr style={{ background: "#f1f5f9", fontWeight: "bold" }}>
+                          <td colSpan="9" style={{ border: "1px solid #000", padding: "6px", textAlign: "right" }}>TOTAUX :</td>
+                          <td style={{ border: "1px solid #000", padding: "6px", textAlign: "right" }}>{filteredImpayes.reduce((sum, s) => sum + s.totalPaye, 0).toLocaleString()} F</td>
+                          <td style={{ border: "1px solid #000", padding: "6px", textAlign: "right" }}>{filteredImpayes.reduce((sum, s) => sum + s.totalExigibleSt, 0).toLocaleString()} F</td>
+                          <td style={{ border: "1px solid #000", padding: "6px", textAlign: "right" }}>{filteredImpayes.reduce((sum, s) => sum + s.reste, 0).toLocaleString()} F</td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  ) : (
+                    <table style={{ width: "100%", borderCollapse: "collapse", border: "1px solid #000", fontSize: "12px" }}>
+                      <thead>
+                        <tr style={{ background: "#f1f5f9" }}>
+                          <th style={{ border: "1px solid #000", padding: "8px" }}>N°</th>
+                          <th style={{ border: "1px solid #000", padding: "8px" }}>Noms Prénoms</th>
+                          <th style={{ border: "1px solid #000", padding: "8px" }}>Classe</th>
+                          <th style={{ border: "1px solid #000", padding: "8px" }}>Statut</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredImpayes.map((st, index) => (
+                          <tr key={st.id} style={{ borderBottom: "1px solid #000" }}>
+                            <td style={{ border: "1px solid #000", padding: "8px", textAlign: "center" }}>{index + 1}</td>
+                            <td style={{ border: "1px solid #000", padding: "8px", fontWeight: "bold" }}>{st.nom} {st.prenom}</td>
+                            <td style={{ border: "1px solid #000", padding: "8px" }}>{st.classe}</td>
+                            <td style={{ border: "1px solid #000", padding: "8px", textAlign: "center" }}>
+                              {viewMode === "tenues" && (st.montantTenues > 0 ? `Payé : ${st.montantTenues.toLocaleString()} F` : "Non payé")}
+                              {viewMode === "dortoir" && (st.hasDortoir ? "✅ Oui" : "❌ Non")}
+                              {viewMode === "dossier" && (st.hasDossier ? "✅ Oui" : "❌ Non")}
+                            </td>
+                          </tr>
+                        ))}
                       </tbody>
                     </table>
-                  </div>
-                ))}
+                  )}
+                </div>
               </div>
+
             </div>
-          )}
+          )}           
 
           {activeTab === "exonerations" && (
             <div>
