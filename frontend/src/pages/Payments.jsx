@@ -1647,7 +1647,9 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
                             <td style={{ padding: "10px 8px", textAlign: "center" }}>{st.payeT2 > 0 ? st.payeT2.toLocaleString() : "-"}</td>
                             <td style={{ padding: "10px 8px", textAlign: "center" }}>{st.payeT3 > 0 ? st.payeT3.toLocaleString() : "-"}</td>
                             <td style={{ padding: "10px 8px", textAlign: "center" }}>{st.hasRame ? "3 500" : "-"}</td>
-                            <td style={{ padding: "10px 8px", textAlign: "right", fontWeight: "bold", color: "#2563eb" }}>{st.totalPaye.toLocaleString()}</td>
+                           <td style={{ padding: "10px 8px", textAlign: "right", fontWeight: "bold", color: "#2563eb" }}>
+  {((st.payeT1 || 0) + (st.payeT2 || 0) + (st.payeT3 || 0) + (st.hasRame ? 3500 : 0) + (st.hasInscription ? 5000 : 0)).toLocaleString()}
+</td>
                             <td style={{ padding: "10px 8px", textAlign: "right", color: "#64748b" }}>{st.totalExigibleSt.toLocaleString()}</td>
                             <td style={{ padding: "10px 8px", textAlign: "right", fontWeight: "bold", color: st.reste > 0 ? "#dc2626" : "#16a34a" }}>{st.reste.toLocaleString()}</td>
                           </tr>
