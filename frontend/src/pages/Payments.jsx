@@ -1640,21 +1640,37 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
                       </thead>
                       <tbody>
                         {currentDisplayedImpayes.map((st, index) => (
-                          <tr key={st.id} style={{ borderBottom: "1px solid #f1f5f9", fontSize: "12px" }}>
-                            <td style={{ padding: "10px 8px" }}>{index + 1}</td>
-                            <td style={{ padding: "10px 8px", fontWeight: "600", textTransform: "uppercase" }}>{st.nom} {st.prenom}</td>
-                           <td style={{ border: "1px solid #000", padding: "4px", textAlign: "center" }}>
-  {st.payeT1 > 0 ? st.payeT1.toLocaleString() : "-"}
-</td>
-                            <td style={{ padding: "10px 8px", textAlign: "center" }}>{st.payeT2 > 0 ? st.payeT2.toLocaleString() : "-"}</td>
-                            <td style={{ padding: "10px 8px", textAlign: "center" }}>{st.payeT3 > 0 ? st.payeT3.toLocaleString() : "-"}</td>
-                            <td style={{ padding: "10px 8px", textAlign: "center" }}>{st.hasRame ? "3 500" : "-"}</td>
-                           <td style={{ padding: "10px 8px", textAlign: "right", fontWeight: "bold", color: "#2563eb" }}>
-  {((st.payeT1 || 0) + (st.payeT2 || 0) + (st.payeT3 || 0) + (st.hasRame ? 3500 : 0) + (st.hasInscription ? 5000 : 0)).toLocaleString()}
-</td>
-                            <td style={{ padding: "10px 8px", textAlign: "right", color: "#64748b" }}>{st.totalExigibleSt.toLocaleString()}</td>
-                            <td style={{ padding: "10px 8px", textAlign: "right", fontWeight: "bold", color: st.reste > 0 ? "#dc2626" : "#16a34a" }}>{st.reste.toLocaleString()}</td>
-                          </tr>
+                                              <tr key={st.id} style={{ borderBottom: "1px solid #f1f5f9", fontSize: "12px" }}>
+                      <td style={{ padding: "10px 8px" }}>{index + 1}</td>
+                      <td style={{ padding: "10px 8px", fontWeight: "600", textTransform: "uppercase" }}>{st.nom} {st.prenom}</td>
+                      <td style={{ padding: "10px 8px" }}>{st.classe}</td>
+                      
+                      {/* Colonne 1er v. */}
+                      <td style={{ padding: "10px 8px", textAlign: "center" }}>{st.payeT1 > 0 ? st.payeT1.toLocaleString() : "-"}</td>
+                      
+                      {/* Colonne 2ème v. */}
+                      <td style={{ padding: "10px 8px", textAlign: "center" }}>{st.payeT2 > 0 ? st.payeT2.toLocaleString() : "-"}</td>
+                      
+                      {/* Colonne 3ème v. */}
+                      <td style={{ padding: "10px 8px", textAlign: "center" }}>{st.payeT3 > 0 ? st.payeT3.toLocaleString() : "-"}</td>
+                      
+                      {/* Colonne Rame */}
+                      <td style={{ padding: "10px 8px", textAlign: "center" }}>{st.hasRame ? "3 500" : "-"}</td>
+                      
+                      {/* Colonne Droit */}
+                      <td style={{ padding: "10px 8px", textAlign: "center" }}>{st.hasInscription ? "5 000" : "-"}</td>
+                      
+                      {/* Colonne Somme versée (Calcul total) */}
+                      <td style={{ padding: "10px 8px", textAlign: "right", fontWeight: "bold", color: "#2563eb" }}>
+                        {((st.payeT1 || 0) + (st.payeT2 || 0) + (st.payeT3 || 0) + (st.hasRame ? 3500 : 0) + (st.hasInscription ? 5000 : 0)).toLocaleString()}
+                      </td>
+                      
+                      {/* Colonne Scolarité */}
+                      <td style={{ padding: "10px 8px", textAlign: "right", color: "#64748b" }}>{st.totalExigibleSt.toLocaleString()}</td>
+                      
+                      {/* Colonne Reste */}
+                      <td style={{ padding: "10px 8px", textAlign: "right", fontWeight: "bold", color: st.reste > 0 ? "#dc2626" : "#16a34a" }}>{st.reste.toLocaleString()}</td>
+                    </tr>
                         ))}
                       </tbody>
                       <tfoot>
@@ -1748,21 +1764,37 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
                           </thead>
                           <tbody>
                             {students.map((st, idx) => (
-                              <tr key={st.id} style={{ borderBottom: "1px solid #000" }}>
-                                <td style={{ border: "1px solid #000", padding: "4px", textAlign: "center" }}>{idx + 1}</td>
-                                <td style={{ border: "1px solid #000", padding: "4px", fontWeight: "bold", wordBreak: "break-word" }}>{st.nom} {st.prenom}</td>
-                                <td style={{ border: "1px solid #000", padding: "4px", wordBreak: "break-word" }}>{st.classe}</td>
-                            <td style={{ border: "1px solid #000", padding: "4px", textAlign: "right", fontWeight: "bold" }}>
-  {((st.payeT1 || 0) + (st.payeT2 || 0) + (st.payeT3 || 0) + (st.hasRame ? 3500 : 0) + (st.hasInscription ? 5000 : 0)).toLocaleString()}
-</td>
-                                <td style={{ border: "1px solid #000", padding: "4px", textAlign: "center" }}>{st.payeT2 > 0 ? st.payeT2.toLocaleString() : "-"}</td>
-                                <td style={{ border: "1px solid #000", padding: "4px", textAlign: "center" }}>{st.payeT3 > 0 ? st.payeT3.toLocaleString() : "-"}</td>
-                                <td style={{ border: "1px solid #000", padding: "4px", textAlign: "center" }}>{st.hasRame ? "3 500" : "-"}</td>
-                                <td style={{ border: "1px solid #000", padding: "4px", textAlign: "center" }}>{st.hasInscription ? "5 000" : "-"}</td>
-                                <td style={{ border: "1px solid #000", padding: "4px", textAlign: "right", fontWeight: "bold" }}>{st.totalPaye.toLocaleString()}</td>
-                                <td style={{ border: "1px solid #000", padding: "4px", textAlign: "right" }}>{st.totalExigibleSt.toLocaleString()}</td>
-                                <td style={{ border: "1px solid #000", padding: "4px", textAlign: "right", fontWeight: "bold" }}>{st.reste.toLocaleString()}</td>
-                              </tr>
+                                                         <tr key={st.id} style={{ borderBottom: "1px solid #000" }}>
+                              <td style={{ border: "1px solid #000", padding: "4px", textAlign: "center" }}>{idx + 1}</td>
+                              <td style={{ border: "1px solid #000", padding: "4px", fontWeight: "bold", wordBreak: "break-word" }}>{st.nom} {st.prenom}</td>
+                              <td style={{ border: "1px solid #000", padding: "4px", wordBreak: "break-word" }}>{st.classe}</td>
+                              
+                              {/* Colonne 1er v. */}
+                              <td style={{ border: "1px solid #000", padding: "4px", textAlign: "center" }}>{st.payeT1 > 0 ? st.payeT1.toLocaleString() : "-"}</td>
+                              
+                              {/* Colonne 2ème v. */}
+                              <td style={{ border: "1px solid #000", padding: "4px", textAlign: "center" }}>{st.payeT2 > 0 ? st.payeT2.toLocaleString() : "-"}</td>
+                              
+                              {/* Colonne 3ème v. */}
+                              <td style={{ border: "1px solid #000", padding: "4px", textAlign: "center" }}>{st.payeT3 > 0 ? st.payeT3.toLocaleString() : "-"}</td>
+                              
+                              {/* Colonne Rame */}
+                              <td style={{ border: "1px solid #000", padding: "4px", textAlign: "center" }}>{st.hasRame ? "3 500" : "-"}</td>
+                              
+                              {/* Colonne Droit */}
+                              <td style={{ border: "1px solid #000", padding: "4px", textAlign: "center" }}>{st.hasInscription ? "5 000" : "-"}</td>
+                              
+                              {/* Colonne Somme versée (Calcul total) */}
+                              <td style={{ border: "1px solid #000", padding: "4px", textAlign: "right", fontWeight: "bold" }}>
+                                {((st.payeT1 || 0) + (st.payeT2 || 0) + (st.payeT3 || 0) + (st.hasRame ? 3500 : 0) + (st.hasInscription ? 5000 : 0)).toLocaleString()}
+                              </td>
+                              
+                              {/* Colonne Scolarité */}
+                              <td style={{ border: "1px solid #000", padding: "4px", textAlign: "right" }}>{st.totalExigibleSt.toLocaleString()}</td>
+                              
+                              {/* Colonne Reste */}
+                              <td style={{ border: "1px solid #000", padding: "4px", textAlign: "right", fontWeight: "bold" }}>{st.reste.toLocaleString()}</td>
+                            </tr> 
                             ))}
                           </tbody>
                           <tfoot>
