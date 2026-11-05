@@ -1580,7 +1580,7 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
             </div>
           )}
 
-                  {activeTab === "impayes" && (
+                       {activeTab === "impayes" && (
             <div id="impayes-print" style={{ background: "white", padding: "24px", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
               <OfficialHeader />
 
@@ -1588,9 +1588,7 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", flexWrap: "wrap", gap: "10px" }}>
                 <div>
                   <h2 style={{ margin: 0, fontSize: "18px", color: "#1e293b" }}>
-                    {viewMode === "registre" ? "Registre Global des Versements" : 
-                     viewMode === "tenues" ? "Liste des Tenues" : 
-                     viewMode === "dortoir" ? "Liste du Dortoir" : "Liste des Frais de Dossier"}
+                    {viewMode === "registre" ? "Registre Global des Versements" : viewMode === "tenues" ? "Liste des Tenues" : viewMode === "dortoir" ? "Liste du Dortoir" : "Liste des Frais de Dossier"}
                   </h2>
                   <div style={{ fontSize: "13px", color: "#2563eb", fontWeight: "700", marginTop: "4px" }}>
                     Classe : {filterClassImpayes === "Tous" ? "Toutes les classes" : filterClassImpayes}
@@ -1598,11 +1596,7 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
                 </div>
 
                 <div className="no-print" style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
-                  <select 
-                    value={viewMode} 
-                    onChange={(e) => { setViewMode(e.target.value); setCurrentPageImpayes(1); }} 
-                    style={{ padding: "10px", borderRadius: "8px", border: "1px solid #2563eb", background: "#eff6ff", color: "#1e40af", fontWeight: "bold" }}
-                  >
+                  <select value={viewMode} onChange={(e) => { setViewMode(e.target.value); setCurrentPageImpayes(1); }} style={{ padding: "10px", borderRadius: "8px", border: "1px solid #2563eb", background: "#eff6ff", color: "#1e40af", fontWeight: "bold" }}>
                     <option value="registre">📖 Registre Global (Scolarité)</option>
                     <option value="tenues">👕 Tenues Scolaires</option>
                     <option value="dortoir">🛏️ Dortoir / Internat</option>
@@ -1627,18 +1621,16 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
               {/* TABLEAU À L'ÉCRAN */}
               <div className="no-print" style={{ borderRadius: "8px", overflowX: "auto", border: "1px solid #e2e8f0" }}>
                 <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "1100px" }}>
-                  
                   {viewMode === "registre" && (
                     <>
                       <thead>
                         <tr style={{ background: "#1e293b", color: "white", textAlign: "left", fontSize: "12px" }}>
                           <th style={{ padding: "12px 8px" }}>N°</th>
                           <th style={{ padding: "12px 8px" }}>Noms Prénoms</th>
-                         <th style={{ padding: "12px 8px", textAlign: "center" }}>1er Versement</th>
+                          <th style={{ padding: "12px 8px", textAlign: "center" }}>Inscription (1er v.)</th>
                           <th style={{ padding: "12px 8px", textAlign: "center" }}>2ème v.</th>
                           <th style={{ padding: "12px 8px", textAlign: "center" }}>3ème v.</th>
                           <th style={{ padding: "12px 8px", textAlign: "center" }}>Rame</th>
-                          <th style={{ padding: "12px 8px", textAlign: "center" }}>Droit d'inscr.</th>
                           <th style={{ padding: "12px 8px", textAlign: "right" }}>Somme versée</th>
                           <th style={{ padding: "12px 8px", textAlign: "right" }}>Scolarité</th>
                           <th style={{ padding: "12px 8px", textAlign: "right" }}>Reste</th>
@@ -1649,13 +1641,10 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
                           <tr key={st.id} style={{ borderBottom: "1px solid #f1f5f9", fontSize: "12px" }}>
                             <td style={{ padding: "10px 8px" }}>{index + 1}</td>
                             <td style={{ padding: "10px 8px", fontWeight: "600", textTransform: "uppercase" }}>{st.nom} {st.prenom}</td>
-                            <td style={{ padding: "10px 8px", textAlign: "center" }}>
-  {((st.hasInscription ? 5000 : 0) + st.payeT1) > 0 ? ((st.hasInscription ? 5000 : 0) + st.payeT1).toLocaleString() : "-"}
-</td>
+                            <td style={{ padding: "10px 8px", textAlign: "center" }}>{((st.hasInscription ? 5000 : 0) + st.payeT1) > 0 ? ((st.hasInscription ? 5000 : 0) + st.payeT1).toLocaleString() : "-"}</td>
                             <td style={{ padding: "10px 8px", textAlign: "center" }}>{st.payeT2 > 0 ? st.payeT2.toLocaleString() : "-"}</td>
                             <td style={{ padding: "10px 8px", textAlign: "center" }}>{st.payeT3 > 0 ? st.payeT3.toLocaleString() : "-"}</td>
                             <td style={{ padding: "10px 8px", textAlign: "center" }}>{st.hasRame ? "3 500" : "-"}</td>
-                            <td style={{ padding: "10px 8px", textAlign: "center" }}>{st.hasInscription ? "5 000" : "-"}</td>
                             <td style={{ padding: "10px 8px", textAlign: "right", fontWeight: "bold", color: "#2563eb" }}>{st.totalPaye.toLocaleString()}</td>
                             <td style={{ padding: "10px 8px", textAlign: "right", color: "#64748b" }}>{st.totalExigibleSt.toLocaleString()}</td>
                             <td style={{ padding: "10px 8px", textAlign: "right", fontWeight: "bold", color: st.reste > 0 ? "#dc2626" : "#16a34a" }}>{st.reste.toLocaleString()}</td>
@@ -1664,7 +1653,7 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
                       </tbody>
                       <tfoot>
                         <tr style={{ background: "#f8fafc", fontWeight: "bold", fontSize: "13px" }}>
-                          <td colSpan="8" style={{ padding: "12px 8px", textAlign: "right" }}>TOTAUX :</td>
+                          <td colSpan="6" style={{ padding: "12px 8px", textAlign: "right" }}>TOTAUX :</td>
                           <td style={{ padding: "12px 8px", textAlign: "right", color: "#2563eb" }}>{currentDisplayedImpayes.reduce((sum, s) => sum + s.totalPaye, 0).toLocaleString()} F</td>
                           <td style={{ padding: "12px 8px", textAlign: "right", color: "#64748b" }}>{currentDisplayedImpayes.reduce((sum, s) => sum + s.totalExigibleSt, 0).toLocaleString()} F</td>
                           <td style={{ padding: "12px 8px", textAlign: "right", color: "#dc2626" }}>{currentDisplayedImpayes.reduce((sum, s) => sum + s.reste, 0).toLocaleString()} F</td>
@@ -1673,14 +1662,14 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
                     </>
                   )}
 
-                  {viewMode === "tenues" && (
+                  {viewMode !== "registre" && (
                     <>
                       <thead>
                         <tr style={{ background: "#1e293b", color: "white", fontSize: "13px" }}>
                           <th style={{ padding: "12px" }}>N°</th>
                           <th style={{ padding: "12px" }}>Noms Prénoms</th>
                           <th style={{ padding: "12px" }}>Classe</th>
-                          <th style={{ padding: "12px", textAlign: "right" }}>Montant Tenues Payé</th>
+                          <th style={{ padding: "12px", textAlign: "center" }}>Statut</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1689,59 +1678,16 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
                             <td style={{ padding: "10px" }}>{index + 1}</td>
                             <td style={{ padding: "10px", fontWeight: "bold" }}>{st.nom} {st.prenom}</td>
                             <td style={{ padding: "10px" }}>{st.classe}</td>
-                            <td style={{ padding: "10px", textAlign: "right", color: st.montantTenues > 0 ? "#16a34a" : "#dc2626", fontWeight: "bold" }}>{st.montantTenues > 0 ? `${st.montantTenues.toLocaleString()} F` : "Non payé"}</td>
+                            <td style={{ padding: "10px", textAlign: "center", fontWeight: "bold", color: (st.hasDortoir || st.hasDossier || st.montantTenues > 0) ? "#16a34a" : "#dc2626" }}>
+                              {viewMode === "tenues" && (st.montantTenues > 0 ? `Payé : ${st.montantTenues.toLocaleString()} F` : "Non payé")}
+                              {viewMode === "dortoir" && (st.hasDortoir ? "✅ Oui" : "❌ Non")}
+                              {viewMode === "dossier" && (st.hasDossier ? "✅ Oui" : "❌ Non")}
+                            </td>
                           </tr>
                         ))}
                       </tbody>
                     </>
                   )}
-
-                  {viewMode === "dortoir" && (
-                    <>
-                      <thead>
-                        <tr style={{ background: "#1e293b", color: "white", fontSize: "13px" }}>
-                          <th style={{ padding: "12px" }}>N°</th>
-                          <th style={{ padding: "12px" }}>Noms Prénoms</th>
-                          <th style={{ padding: "12px" }}>Classe</th>
-                          <th style={{ padding: "12px", textAlign: "center" }}>A payé le Dortoir ?</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {currentDisplayedImpayes.map((st, index) => (
-                          <tr key={st.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
-                            <td style={{ padding: "10px" }}>{index + 1}</td>
-                            <td style={{ padding: "10px", fontWeight: "bold" }}>{st.nom} {st.prenom}</td>
-                            <td style={{ padding: "10px" }}>{st.classe}</td>
-                            <td style={{ padding: "10px", textAlign: "center", fontWeight: "bold", color: st.hasDortoir ? "#16a34a" : "#dc2626" }}>{st.hasDortoir ? "✅ Oui" : "❌ Non"}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </>
-                  )}
-
-                  {viewMode === "dossier" && (
-                    <>
-                      <thead>
-                        <tr style={{ background: "#1e293b", color: "white", fontSize: "13px" }}>
-                          <th style={{ padding: "12px" }}>N°</th>
-                          <th style={{ padding: "12px" }}>Noms Prénoms</th>
-                          <th style={{ padding: "12px" }}>Classe</th>
-                          <th style={{ padding: "12px", textAlign: "center" }}>A payé les Dossiers ?</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {currentDisplayedImpayes.map((st, index) => (
-                          <tr key={st.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
-                            <td style={{ padding: "10px" }}>{index + 1}</td>
-                            <td style={{ padding: "10px", fontWeight: "bold" }}>{st.nom} {st.prenom}</td>
-                            <td style={{ padding: "10px" }}>{st.classe}</td>
-                            <td style={{ padding: "10px", textAlign: "center", fontWeight: "bold", color: st.hasDossier ? "#16a34a" : "#dc2626" }}>{st.hasDossier ? "✅ Oui" : "❌ Non"}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </>
-                  )}
-
                 </table>
               </div>
 
@@ -1756,10 +1702,9 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
                 </div>
               )}
 
-              {/* ✅ TABLEAU D'IMPRESSION EN MODE PAYSAGE */}
-                              <div className="print-only" style={{ display: "none" }}>
-                <div className="landscape-table" style={{ padding: "10px" }}>
-                  
+              {/* TABLEAU D'IMPRESSION (SÉPARÉ PAR CLASSE) */}
+              <div className="print-only" style={{ display: "none" }}>
+                <div style={{ padding: "0" }}>
                   {viewMode === "registre" ? (
                     Object.entries(
                       filteredImpayes.reduce((acc, st) => {
@@ -1769,69 +1714,66 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
                         return acc;
                       }, {})
                     ).map(([cls, students], index) => (
-                      <div key={cls} style={{ pageBreakBefore: index > 0 ? 'always' : 'auto', marginBottom: '30px' }}>
+                      <div key={cls} style={{ pageBreakBefore: index > 0 ? 'always' : 'auto', marginBottom: '20px' }}>
                         
                         <h3 style={{ textAlign: "center", fontSize: "14px", fontWeight: "bold", marginBottom: "10px", textTransform: "uppercase" }}>
                           REGISTRE GLOBAL DES VERSEMENTS - CLASSE : {cls}
                         </h3>
 
-                        <table style={{ width: "100%", borderCollapse: "collapse", border: "1px solid #000", fontSize: "10px" }}>
+                        <table style={{ width: "100%", borderCollapse: "collapse", border: "1px solid #000", fontSize: "8px", tableLayout: "fixed" }}>
                           <thead>
                             <tr style={{ background: "#f1f5f9" }}>
-                              <th style={{ border: "1px solid #000", padding: "6px" }}>N°</th>
-                              <th style={{ border: "1px solid #000", padding: "6px" }}>Noms Prénoms</th>
-                              {/* ✅ COLONNE CLASSE REMISE ICI */}
-                              <th style={{ border: "1px solid #000", padding: "6px" }}>Classe</th>
-                              <th style={{ border: "1px solid #000", padding: "6px" }}>Inscription (1er v.)</th>
-                              <th style={{ border: "1px solid #000", padding: "6px" }}>2ème v.</th>
-                              <th style={{ border: "1px solid #000", padding: "6px" }}>3ème v.</th>
-                              <th style={{ border: "1px solid #000", padding: "6px" }}>Rame</th>
-                              <th style={{ border: "1px solid #000", padding: "6px" }}>Droit</th>
-                              <th style={{ border: "1px solid #000", padding: "6px" }}>Somme</th>
-                              <th style={{ border: "1px solid #000", padding: "6px" }}>Scolarité</th>
-                              <th style={{ border: "1px solid #000", padding: "6px" }}>Reste</th>
+                              <th style={{ border: "1px solid #000", padding: "4px", width: "4%", textAlign: "center" }}>N°</th>
+                              <th style={{ border: "1px solid #000", padding: "4px", width: "18%", textAlign: "left" }}>Noms Prénoms</th>
+                              <th style={{ border: "1px solid #000", padding: "4px", width: "10%", textAlign: "left" }}>Classe</th>
+                              <th style={{ border: "1px solid #000", padding: "4px", width: "10%", textAlign: "center" }}>Inscr. (1er v.)</th>
+                              <th style={{ border: "1px solid #000", padding: "4px", width: "8%", textAlign: "center" }}>2ème v.</th>
+                              <th style={{ border: "1px solid #000", padding: "4px", width: "8%", textAlign: "center" }}>3ème v.</th>
+                              <th style={{ border: "1px solid #000", padding: "4px", width: "6%", textAlign: "center" }}>Rame</th>
+                              <th style={{ border: "1px solid #000", padding: "4px", width: "6%", textAlign: "center" }}>Droit</th>
+                              <th style={{ border: "1px solid #000", padding: "4px", width: "10%", textAlign: "right" }}>Somme</th>
+                              <th style={{ border: "1px solid #000", padding: "4px", width: "10%", textAlign: "right" }}>Scolarité</th>
+                              <th style={{ border: "1px solid #000", padding: "4px", width: "10%", textAlign: "right" }}>Reste</th>
                             </tr>
                           </thead>
                           <tbody>
                             {students.map((st, idx) => (
                               <tr key={st.id} style={{ borderBottom: "1px solid #000" }}>
-                                <td style={{ border: "1px solid #000", padding: "6px", textAlign: "center" }}>{idx + 1}</td>
-                                <td style={{ border: "1px solid #000", padding: "6px", fontWeight: "bold" }}>{st.nom} {st.prenom}</td>
-                                {/* ✅ DONNÉE CLASSE REMISE ICI */}
-                                <td style={{ border: "1px solid #000", padding: "6px" }}>{st.classe}</td>
-                                <td style={{ border: "1px solid #000", padding: "6px", textAlign: "center" }}>
+                                <td style={{ border: "1px solid #000", padding: "4px", textAlign: "center" }}>{idx + 1}</td>
+                                <td style={{ border: "1px solid #000", padding: "4px", fontWeight: "bold", wordBreak: "break-word" }}>{st.nom} {st.prenom}</td>
+                                <td style={{ border: "1px solid #000", padding: "4px", wordBreak: "break-word" }}>{st.classe}</td>
+                                <td style={{ border: "1px solid #000", padding: "4px", textAlign: "center" }}>
                                   {((st.hasInscription ? 5000 : 0) + st.payeT1) > 0 ? ((st.hasInscription ? 5000 : 0) + st.payeT1).toLocaleString() : "-"}
                                 </td>
-                                <td style={{ border: "1px solid #000", padding: "6px", textAlign: "center" }}>{st.payeT2 > 0 ? st.payeT2.toLocaleString() : "-"}</td>
-                                <td style={{ border: "1px solid #000", padding: "6px", textAlign: "center" }}>{st.payeT3 > 0 ? st.payeT3.toLocaleString() : "-"}</td>
-                                <td style={{ border: "1px solid #000", padding: "6px", textAlign: "center" }}>{st.hasRame ? "3 500" : "-"}</td>
-                                <td style={{ border: "1px solid #000", padding: "6px", textAlign: "center" }}>{st.hasInscription ? "5 000" : "-"}</td>
-                                <td style={{ border: "1px solid #000", padding: "6px", textAlign: "right", fontWeight: "bold" }}>{st.totalPaye.toLocaleString()}</td>
-                                <td style={{ border: "1px solid #000", padding: "6px", textAlign: "right" }}>{st.totalExigibleSt.toLocaleString()}</td>
-                                <td style={{ border: "1px solid #000", padding: "6px", textAlign: "right", fontWeight: "bold" }}>{st.reste.toLocaleString()}</td>
+                                <td style={{ border: "1px solid #000", padding: "4px", textAlign: "center" }}>{st.payeT2 > 0 ? st.payeT2.toLocaleString() : "-"}</td>
+                                <td style={{ border: "1px solid #000", padding: "4px", textAlign: "center" }}>{st.payeT3 > 0 ? st.payeT3.toLocaleString() : "-"}</td>
+                                <td style={{ border: "1px solid #000", padding: "4px", textAlign: "center" }}>{st.hasRame ? "3 500" : "-"}</td>
+                                <td style={{ border: "1px solid #000", padding: "4px", textAlign: "center" }}>{st.hasInscription ? "5 000" : "-"}</td>
+                                <td style={{ border: "1px solid #000", padding: "4px", textAlign: "right", fontWeight: "bold" }}>{st.totalPaye.toLocaleString()}</td>
+                                <td style={{ border: "1px solid #000", padding: "4px", textAlign: "right" }}>{st.totalExigibleSt.toLocaleString()}</td>
+                                <td style={{ border: "1px solid #000", padding: "4px", textAlign: "right", fontWeight: "bold" }}>{st.reste.toLocaleString()}</td>
                               </tr>
                             ))}
                           </tbody>
                           <tfoot>
                             <tr style={{ background: "#f1f5f9", fontWeight: "bold" }}>
-                              {/* ✅ ON AJUSTE LE COLSPAN A 8 CAR ON A RAJOUTÉ UNE COLONNE */}
-                              <td colSpan="8" style={{ border: "1px solid #000", padding: "6px", textAlign: "right" }}>TOTAUX CLASSE :</td>
-                              <td style={{ border: "1px solid #000", padding: "6px", textAlign: "right" }}>{students.reduce((sum, s) => sum + s.totalPaye, 0).toLocaleString()} F</td>
-                              <td style={{ border: "1px solid #000", padding: "6px", textAlign: "right" }}>{students.reduce((sum, s) => sum + s.totalExigibleSt, 0).toLocaleString()} F</td>
-                              <td style={{ border: "1px solid #000", padding: "6px", textAlign: "right" }}>{students.reduce((sum, s) => sum + s.reste, 0).toLocaleString()} F</td>
+                              <td colSpan="8" style={{ border: "1px solid #000", padding: "4px", textAlign: "right" }}>TOTAUX CLASSE :</td>
+                              <td style={{ border: "1px solid #000", padding: "4px", textAlign: "right" }}>{students.reduce((sum, s) => sum + s.totalPaye, 0).toLocaleString()} F</td>
+                              <td style={{ border: "1px solid #000", padding: "4px", textAlign: "right" }}>{students.reduce((sum, s) => sum + s.totalExigibleSt, 0).toLocaleString()} F</td>
+                              <td style={{ border: "1px solid #000", padding: "4px", textAlign: "right" }}>{students.reduce((sum, s) => sum + s.reste, 0).toLocaleString()} F</td>
                             </tr>
                           </tfoot>
                         </table>
                       </div>
                     ))
                   ) : (
-                    <table style={{ width: "100%", borderCollapse: "collapse", border: "1px solid #000", fontSize: "12px" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", border: "1px solid #000", fontSize: "12px", tableLayout: "fixed" }}>
                       <thead>
                         <tr style={{ background: "#f1f5f9" }}>
-                          <th style={{ border: "1px solid #000", padding: "8px" }}>N°</th>
-                          <th style={{ border: "1px solid #000", padding: "8px" }}>Noms Prénoms</th>
-                          <th style={{ border: "1px solid #000", padding: "8px" }}>Classe</th>
-                          <th style={{ border: "1px solid #000", padding: "8px" }}>Statut</th>
+                          <th style={{ border: "1px solid #000", padding: "8px", width: "10%" }}>N°</th>
+                          <th style={{ border: "1px solid #000", padding: "8px", width: "40%" }}>Noms Prénoms</th>
+                          <th style={{ border: "1px solid #000", padding: "8px", width: "20%" }}>Classe</th>
+                          <th style={{ border: "1px solid #000", padding: "8px", width: "30%" }}>Statut</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1851,10 +1793,11 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
                     </table>
                   )}
                 </div>
-              </div>          
-
+              </div>
             </div>
-          )}           
+          )}
+
+            
 
           {activeTab === "exonerations" && (
             <div>
@@ -2644,7 +2587,7 @@ const dejaPaye = Math.max(0, totalEncaisse - totalAnnexesPayees);
               )}  
             </div>
 
-            <div style={{ textAlign: "center", margin: "10px 0", padding: "6px", background: "#f8fafc", borderRadius: "6px", border: "1px solid #e2e8f0" }}>
+                       <div style={{ textAlign: "center", margin: "10px 0", padding: "6px", background: "#f8fafc", borderRadius: "6px", border: "1px solid #e2e8f0" }}>
               <span style={{ fontSize: "10.5px", fontWeight: "700", color: "#b91c1c", letterSpacing: "0.3px", textTransform: "uppercase" }}>
                 Toute somme versée n'est plus restituable.
               </span>
@@ -2658,7 +2601,7 @@ const dejaPaye = Math.max(0, totalEncaisse - totalAnnexesPayees);
               </div>
             </div>
 
-            <div className="no-print" style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "12px" }}>
+                  <div className="no-print" style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "12px" }}>
               <button onClick={() => setReceiptModalOpen(false)} style={{ padding: "6px 12px", borderRadius: "6px", border: "1px solid #cbd5e1", background: "white", cursor: "pointer" }}>Fermer</button>
               <button onClick={() => generatePDFReceipt(selectedReceipt)} style={{ padding: "6px 14px", borderRadius: "6px", border: "none", background: "#16a34a", color: "white", fontWeight: "600", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "6px" }}>
                 <Download size={16} /> Télécharger PDF
@@ -2668,8 +2611,9 @@ const dejaPaye = Math.max(0, totalEncaisse - totalAnnexesPayees);
               </button>
             </div>
           </div>
-        </Modal>
-      )}
-    </div>
-  );
-}
+      </Modal>
+    )}
+
+  </div>
+);
+}     
