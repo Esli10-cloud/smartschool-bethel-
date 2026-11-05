@@ -1662,7 +1662,7 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
                       
                       {/* Colonne Somme versée (Calcul total) */}
                       <td style={{ padding: "10px 8px", textAlign: "right", fontWeight: "bold", color: "#2563eb" }}>
-                        {((st.payeT1 || 0) + (st.payeT2 || 0) + (st.payeT3 || 0) + (st.hasRame ? 3500 : 0) + (st.hasInscription ? 5000 : 0)).toLocaleString()}
+                       {st.payeT1 > 0 ? st.payeT1.toLocaleString() : "-"}
                       </td>
                       
                       {/* Colonne Scolarité */}
@@ -1743,58 +1743,54 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
                         </h3>
 
                         <table style={{ width: "100%", borderCollapse: "collapse", border: "1px solid #000", fontSize: "8px", tableLayout: "fixed" }}>
-                          <thead>
-                            <tr style={{ background: "#f1f5f9" }}>
-                              <th style={{ border: "1px solid #000", padding: "4px", width: "4%", textAlign: "center" }}>N°</th>
-                              <th style={{ border: "1px solid #000", padding: "4px", width: "18%", textAlign: "left" }}>Noms Prénoms</th>
-                              <th style={{ border: "1px solid #000", padding: "4px", width: "10%", textAlign: "left" }}>Classe</th>
-                             <td style={{ padding: "10px 8px", textAlign: "center" }}>
-  {st.payeT1 > 0 ? st.payeT1.toLocaleString() : "-"}
-</td>
-                              <th style={{ border: "1px solid #000", padding: "4px", width: "8%", textAlign: "center" }}>2ème v.</th>
-                              <th style={{ border: "1px solid #000", padding: "4px", width: "8%", textAlign: "center" }}>3ème v.</th>
-                              <th style={{ border: "1px solid #000", padding: "4px", width: "6%", textAlign: "center" }}>Rame</th>
-                              <th style={{ border: "1px solid #000", padding: "4px", width: "6%", textAlign: "center" }}>Droit</th>
-                            <td style={{ padding: "10px 8px", textAlign: "right", fontWeight: "bold", color: "#2563eb" }}>
-  {((st.payeT1 || 0) + (st.payeT2 || 0) + (st.payeT3 || 0) + (st.hasRame ? 3500 : 0) + (st.hasInscription ? 5000 : 0)).toLocaleString()}
-</td>
-                              <th style={{ border: "1px solid #000", padding: "4px", width: "10%", textAlign: "right" }}>Scolarité</th>
-                              <th style={{ border: "1px solid #000", padding: "4px", width: "10%", textAlign: "right" }}>Reste</th>
-                            </tr>
-                          </thead>
+                                                 <thead>
+                        <tr style={{ background: "#f1f5f9" }}>
+                          <th style={{ border: "1px solid #000", padding: "4px", width: "4%", textAlign: "center" }}>N°</th>
+                          <th style={{ border: "1px solid #000", padding: "4px", width: "18%", textAlign: "left" }}>Noms Prénoms</th>
+                          <th style={{ border: "1px solid #000", padding: "4px", width: "10%", textAlign: "left" }}>Classe</th>
+                          <th style={{ border: "1px solid #000", padding: "4px", width: "10%", textAlign: "center" }}>Inscr. (1er v.)</th>
+                          <th style={{ border: "1px solid #000", padding: "4px", width: "8%", textAlign: "center" }}>2ème v.</th>
+                          <th style={{ border: "1px solid #000", padding: "4px", width: "8%", textAlign: "center" }}>3ème v.</th>
+                          <th style={{ border: "1px solid #000", padding: "4px", width: "6%", textAlign: "center" }}>Rame</th>
+                          <th style={{ border: "1px solid #000", padding: "4px", width: "6%", textAlign: "center" }}>Droit</th>
+                          <th style={{ border: "1px solid #000", padding: "4px", width: "10%", textAlign: "right" }}>Somme versée</th>
+                          <th style={{ border: "1px solid #000", padding: "4px", width: "10%", textAlign: "right" }}>Scolarité</th>
+                          <th style={{ border: "1px solid #000", padding: "4px", width: "10%", textAlign: "right" }}>Reste</th>
+                        </tr>
+                      </thead>
                           <tbody>
                             {students.map((st, idx) => (
-                                                         <tr key={st.id} style={{ borderBottom: "1px solid #000" }}>
+                                                                                  <tr key={st.id} style={{ borderBottom: "1px solid #000" }}>
                               <td style={{ border: "1px solid #000", padding: "4px", textAlign: "center" }}>{idx + 1}</td>
                               <td style={{ border: "1px solid #000", padding: "4px", fontWeight: "bold", wordBreak: "break-word" }}>{st.nom} {st.prenom}</td>
                               <td style={{ border: "1px solid #000", padding: "4px", wordBreak: "break-word" }}>{st.classe}</td>
                               
-                              {/* Colonne 1er v. */}
+                              {/* 1er versement */}
                               <td style={{ border: "1px solid #000", padding: "4px", textAlign: "center" }}>{st.payeT1 > 0 ? st.payeT1.toLocaleString() : "-"}</td>
                               
-                              {/* Colonne 2ème v. */}
+                              {/* 2ème versement */}
                               <td style={{ border: "1px solid #000", padding: "4px", textAlign: "center" }}>{st.payeT2 > 0 ? st.payeT2.toLocaleString() : "-"}</td>
                               
-                              {/* Colonne 3ème v. */}
+                              {/* 3ème versement */}
                               <td style={{ border: "1px solid #000", padding: "4px", textAlign: "center" }}>{st.payeT3 > 0 ? st.payeT3.toLocaleString() : "-"}</td>
                               
-                              {/* Colonne Rame */}
+                              {/* Rame */}
                               <td style={{ border: "1px solid #000", padding: "4px", textAlign: "center" }}>{st.hasRame ? "3 500" : "-"}</td>
                               
-                              {/* Colonne Droit */}
+                              {/* Droit */}
                               <td style={{ border: "1px solid #000", padding: "4px", textAlign: "center" }}>{st.hasInscription ? "5 000" : "-"}</td>
                               
-                              {/* Colonne Somme versée (Calcul total) */}
+                              {/* Somme versée (le fameux calcul) */}
                               <td style={{ border: "1px solid #000", padding: "4px", textAlign: "right", fontWeight: "bold" }}>
                                 {((st.payeT1 || 0) + (st.payeT2 || 0) + (st.payeT3 || 0) + (st.hasRame ? 3500 : 0) + (st.hasInscription ? 5000 : 0)).toLocaleString()}
                               </td>
                               
-                              {/* Colonne Scolarité */}
+                              {/* Scolarité */}
                               <td style={{ border: "1px solid #000", padding: "4px", textAlign: "right" }}>{st.totalExigibleSt.toLocaleString()}</td>
                               
-                              {/* Colonne Reste */}
+                              {/* Reste */}
                               <td style={{ border: "1px solid #000", padding: "4px", textAlign: "right", fontWeight: "bold" }}>{st.reste.toLocaleString()}</td>
-                            </tr> 
+                            </tr>
                             ))}
                           </tbody>
                           <tfoot>
