@@ -1082,11 +1082,19 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
       0
     );
     const fDetails = getFeeDetails(st);
-    
-    const totalExigibleSt = fDetails.total + EXTRA_FEES.INSCRIPTION_FEE + EXTRA_FEES.PAPER_RAME_FEE;
-    const reste = Math.max(0, totalExigibleSt - totalPaye);
+        // 1. Vérification des autres frais (On le fait AVANT le calcul du reste)
+    const allStPays = payments.filter(p => String(p.student_id) === String(st.id) && !p.is_cancelled);
+    const hasInscription = allStPays.some(p => p.paye_inscription === true);
+    const hasRame = allStPays.some(p => p.paye_rame === true);
+    const hasDortoir = allStPays.some(p => p.paye_dortoir === true || (p.notes && p.notes.includes("Dortoir")));
+    const hasDossier = allStPays.some(p => p.notes && p.notes.includes("Dossiers:"));
 
-    // 2. Répartition sur les tranches
+    // 2. Calcul du reste en déduisant les frais annexes DÉJÀ payés
+    const totalExigibleSt = fDetails.total + EXTRA_FEES.INSCRIPTION_FEE + EXTRA_FEES.PAPER_RAME_FEE;
+    const totalPayeReel = totalPaye + (hasInscription ? EXTRA_FEES.INSCRIPTION_FEE : 0) + (hasRame ? EXTRA_FEES.PAPER_RAME_FEE : 0);
+    const reste = Math.max(0, totalExigibleSt - totalPayeReel);
+
+    // 3. Répartition sur les tranches (On utilise totalPaye, la scolarité pure)
     const exactInstallments = getExactInstallments(st.classe || st.class_name, fDetails.total);
     const v1 = exactInstallments.v1 || 0;
     const v2 = exactInstallments.v2 || 0;
@@ -1099,20 +1107,14 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
     resteArgent -= payeT2;
     const payeT3 = Math.min(resteArgent, v3);
 
-    // 3. Vérification des autres frais
-    const allStPays = payments.filter(p => String(p.student_id) === String(st.id) && !p.is_cancelled);
-    const hasInscription = allStPays.some(p => p.paye_inscription === true);
-    const hasRame = allStPays.some(p => p.paye_rame === true);
-    const hasDortoir = allStPays.some(p => p.paye_dortoir === true || (p.notes && p.notes.includes("Dortoir")));
-    const hasDossier = allStPays.some(p => p.notes && p.notes.includes("Dossiers:"));
-
     // 4. Calcul du montant des tenues
     let montantTenues = 0;
     const uniformDetails = getUniformDetailsFromNotes(allStPays.map(p => p.notes).join(" "));
     if (uniformDetails.length > 0) {
       montantTenues = uniformDetails.reduce((sum, item) => sum + item.total, 0);
     }
-
+    
+   
     return { 
       ...st, 
       totalPaye, 
@@ -1730,12 +1732,16 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
                               <th style={{ border: "1px solid #000", padding: "4px", width: "4%", textAlign: "center" }}>N°</th>
                               <th style={{ border: "1px solid #000", padding: "4px", width: "18%", textAlign: "left" }}>Noms Prénoms</th>
                               <th style={{ border: "1px solid #000", padding: "4px", width: "10%", textAlign: "left" }}>Classe</th>
-                              <th style={{ border: "1px solid #000", padding: "4px", width: "10%", textAlign: "center" }}>Inscr. (1er v.)</th>
+                             <td style={{ padding: "10px 8px", textAlign: "center" }}>
+  {st.payeT1 > 0 ? st.payeT1.toLocaleString() : "-"}
+</td>
                               <th style={{ border: "1px solid #000", padding: "4px", width: "8%", textAlign: "center" }}>2ème v.</th>
                               <th style={{ border: "1px solid #000", padding: "4px", width: "8%", textAlign: "center" }}>3ème v.</th>
                               <th style={{ border: "1px solid #000", padding: "4px", width: "6%", textAlign: "center" }}>Rame</th>
                               <th style={{ border: "1px solid #000", padding: "4px", width: "6%", textAlign: "center" }}>Droit</th>
-                              <th style={{ border: "1px solid #000", padding: "4px", width: "10%", textAlign: "right" }}>Somme versée</th>
+                            <td style={{ padding: "10px 8px", textAlign: "right", fontWeight: "bold", color: "#2563eb" }}>
+  {((st.payeT1 || 0) + (st.payeT2 || 0) + (st.payeT3 || 0) + (st.hasRame ? 3500 : 0) + (st.hasInscription ? 5000 : 0)).toLocaleString()}
+</td>
                               <th style={{ border: "1px solid #000", padding: "4px", width: "10%", textAlign: "right" }}>Scolarité</th>
                               <th style={{ border: "1px solid #000", padding: "4px", width: "10%", textAlign: "right" }}>Reste</th>
                             </tr>
