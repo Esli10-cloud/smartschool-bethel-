@@ -1661,9 +1661,10 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
                       <td style={{ padding: "10px 8px", textAlign: "center" }}>{st.hasInscription ? "5 000" : "-"}</td>
                       
                       {/* Colonne Somme versée (Calcul total) */}
-                      <td style={{ padding: "10px 8px", textAlign: "right", fontWeight: "bold", color: "#2563eb" }}>
-                       {st.payeT1 > 0 ? st.payeT1.toLocaleString() : "-"}
-                      </td>
+                                                    {/* Colonne Somme versée (Calcul total) */}
+                              <td style={{ padding: "10px 8px", textAlign: "right", fontWeight: "bold", color: "#2563eb" }}>
+                                {((st.payeT1 || 0) + (st.payeT2 || 0) + (st.payeT3 || 0) + (st.hasRame ? 3500 : 0) + (st.hasInscription ? 5000 : 0)).toLocaleString()}
+                              </td>
                       
                       {/* Colonne Scolarité */}
                       <td style={{ padding: "10px 8px", textAlign: "right", color: "#64748b" }}>{st.totalExigibleSt.toLocaleString()}</td>
@@ -1781,6 +1782,7 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
                               <td style={{ border: "1px solid #000", padding: "4px", textAlign: "center" }}>{st.hasInscription ? "5 000" : "-"}</td>
                               
                               {/* Somme versée (le fameux calcul) */}
+                                                            {/* Somme versée */}
                               <td style={{ border: "1px solid #000", padding: "4px", textAlign: "right", fontWeight: "bold" }}>
                                 {((st.payeT1 || 0) + (st.payeT2 || 0) + (st.payeT3 || 0) + (st.hasRame ? 3500 : 0) + (st.hasInscription ? 5000 : 0)).toLocaleString()}
                               </td>
