@@ -591,6 +591,9 @@ export default function Payments() {
         tr1 = 50000; tr2 = 25000; tr3 = 25000; baseTotal = 100000;
       } else if (cls.includes("GÉNIE CIVIL") || cls.includes("GENIE CIVIL") || cls.includes("F4")) {
         tr1 = 80000; tr2 = 30000; tr3 = 30000; baseTotal = 140000;
+              } else if (cls.includes("BAC-PRO") && cls.includes("MVA")) {
+        tr1 = 100000; tr2 = 25000; tr3 = 25000; baseTotal = 150000;
+      } else {
       } else {
         tr1 = 50000; tr2 = 25000; tr3 = 25000; baseTotal = 100000;
       }
@@ -609,6 +612,7 @@ export default function Payments() {
       else if (cls.includes("CAP") || cls.includes("AP")) { tr1 = 100000; tr2 = 25000; tr3 = 25000; baseTotal = 150000; }
             else if (cls.includes("MVA") && cls.includes("BEP")) { tr1 = 100000; tr2 = 35000; tr3 = 30000; baseTotal = 165000; }
       else if (cls.includes("BAC-PRO") && (cls.includes("ÉLECTRO") || cls.includes("ELECTRO"))) { tr1 = 140000; tr2 = 40000; tr3 = 40000; baseTotal = 220000; }
+            else if (cls.includes("BAC-PRO") && cls.includes("MVA")) { tr1 = 100000; tr2 = 60000; tr3 = 60000; baseTotal = 220000; }
       else if (cls.includes("GÉNIE CIVIL") || cls.includes("GENIE CIVIL")) {
         if (cls.includes("TLE")) { tr1 = 110000; tr2 = 50000; tr3 = 50000; baseTotal = 210000; }
         else if (cls.includes("BAC-PRO")) { tr1 = 140000; tr2 = 40000; tr3 = 40000; baseTotal = 220000; }
