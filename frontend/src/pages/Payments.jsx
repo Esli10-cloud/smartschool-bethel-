@@ -584,7 +584,7 @@ export default function Payments() {
     let baseTotal = 150000;
     let tr1 = 100000, tr2 = 25000, tr3 = 25000;
 
-       if (isAffected) {
+          if (isAffected) {
       if (cls.includes("ACC") || cls.includes("COMPTA") || cls.includes("AB3") || cls.includes("G2")) {
         tr1 = 25000; tr2 = 12500; tr3 = 12500; baseTotal = 50000;
       } else if (cls.includes("CAP") || cls.includes("AP")) {
@@ -596,8 +596,7 @@ export default function Payments() {
       } else {
         tr1 = 50000; tr2 = 25000; tr3 = 25000; baseTotal = 100000;
       }
-    }
-    } else {
+    } else { 
       // Correction spécifique pour le Second Cycle Général : 2nd AC, 1ère A/D et Terminale A/D (100 000 F)
       if (
         cls.includes("2ND AC") || cls.includes("2NDE AC") ||
