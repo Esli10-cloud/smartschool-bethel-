@@ -363,6 +363,7 @@ export default function Payments() {
   const [students, setStudents] = useState([]);
   const [payments, setPayments] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
+    const [searchTermAudit, setSearchTermAudit] = useState("");
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -507,11 +508,11 @@ export default function Payments() {
 
         if (payErr) throw payErr;
 
-        const { data: logData, error: logErr } = await supabase
+               const { data: logData, error: logErr } = await supabase
           .from("audit_logs")
           .select("*")
           .order("created_at", { ascending: false })
-          .limit(100);
+          .limit(5000); // ✅ On charge jusqu'à 5000 logs pour avoir tout l'historique
 
         if (logErr) throw logErr;
 
@@ -1980,9 +1981,9 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
             </div>
           )}
 
-          {activeTab === "audit" && currentUser.role === "admin" && (
+                  {activeTab === "audit" && currentUser.role === "admin" && (
             <div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", flexWrap: "wrap", gap: "10px" }}>
                 <div>
                   <h2 style={{ margin: 0, fontSize: "18px", color: "#1e293b" }}>Journal d'Audit & Traçabilité</h2>
                   <p style={{ color: "#64748b", fontSize: "13px", marginTop: "4px" }}>
@@ -1992,6 +1993,20 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
                 <button onClick={() => window.location.reload()} style={{ background: "#7c3aed", color: "white", border: "none", padding: "8px 14px", borderRadius: "8px", fontWeight: "600", cursor: "pointer" }}>
                   🔄 Actualiser les logs
                 </button>
+              </div>
+
+              {/* ✅ BARRE DE RECHERCHE AJOUTÉE ICI */}
+              <div className="no-print" style={{ display: "flex", gap: "10px", marginBottom: "16px" }}>
+                <div style={{ position: "relative", width: "350px" }}>
+                  <Search size={18} style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "#94a3b8" }} />
+                  <input 
+                    type="text" 
+                    placeholder="Rechercher un agent, une action..." 
+                    value={searchTermAudit} 
+                    onChange={(e) => setSearchTermAudit(e.target.value)} 
+                    style={{ width: "100%", padding: "10px 10px 10px 36px", borderRadius: "8px", border: "1px solid #cbd5e1", fontSize: "14px" }}
+                  />
+                </div>
               </div>
 
               <div style={{ background: "white", borderRadius: "12px", border: "1px solid #e2e8f0", overflow: "hidden" }}>
@@ -2009,20 +2024,33 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
                     {auditLogs.length === 0 ? (
                       <tr><td colSpan="5" style={{ padding: "30px", textAlign: "center", color: "#64748b" }}>Aucun journal enregistré.</td></tr>
                     ) : (
-                      auditLogs.map((log) => (
-                        <tr key={log.id} style={{ borderBottom: "1px solid #f1f5f9", fontSize: "13px" }}>
-                          <td style={{ padding: "14px 20px", color: "#64748b" }}>{log.created_at ? new Date(log.created_at).toLocaleString("en-GB") : "-"}</td>
-                          <td style={{ padding: "14px 20px", fontWeight: "700", color: "#1e293b" }}>{log.user_name || "Admin"}</td>
-                          <td style={{ padding: "14px 20px" }}>
-                            <span style={{ background: "#ede9fe", color: "#6d28d9", padding: "2px 8px", borderRadius: "4px", fontSize: "11px", fontWeight: "700" }}>{log.role || "admin"}</span>
-                          </td>
-                          <td style={{ padding: "14px 20px", fontWeight: "600", color: "#2563eb" }}>{log.action}</td>
-                          <td style={{ padding: "14px 20px", color: "#334155" }}>{log.details}</td>
-                        </tr>
-                      ))
+                      /* ✅ FILTRE AJOUTÉ ICI */
+                      auditLogs
+                        .filter((log) => {
+                          const search = searchTermAudit.toLowerCase();
+                          return (
+                            (log.user_name?.toLowerCase() || "").includes(search) ||
+                            (log.action?.toLowerCase() || "").includes(search) ||
+                            (log.details?.toLowerCase() || "").includes(search)
+                          );
+                        })
+                        .map((log) => (
+                          <tr key={log.id} style={{ borderBottom: "1px solid #f1f5f9", fontSize: "13px" }}>
+                            <td style={{ padding: "14px 20px", color: "#64748b" }}>{log.created_at ? new Date(log.created_at).toLocaleString("en-GB") : "-"}</td>
+                            <td style={{ padding: "14px 20px", fontWeight: "700", color: "#1e293b" }}>{log.user_name || "Admin"}</td>
+                            <td style={{ padding: "14px 20px" }}>
+                              <span style={{ background: "#ede9fe", color: "#6d28d9", padding: "2px 8px", borderRadius: "4px", fontSize: "11px", fontWeight: "700" }}>{log.role || "admin"}</span>
+                            </td>
+                            <td style={{ padding: "14px 20px", fontWeight: "600", color: "#2563eb" }}>{log.action}</td>
+                            <td style={{ padding: "14px 20px", color: "#334155" }}>{log.details}</td>
+                          </tr>
+                        ))
                     )}
                   </tbody>
                 </table>
+              </div>
+            </div>
+          )}
               </div>
             </div>
           )}
