@@ -2042,7 +2042,7 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
                               <span style={{ background: "#ede9fe", color: "#6d28d9", padding: "2px 8px", borderRadius: "4px", fontSize: "11px", fontWeight: "700" }}>{log.role || "admin"}</span>
                             </td>
                             <td style={{ padding: "14px 20px", fontWeight: "600", color: "#2563eb" }}>{log.action}</td>
-                            <td style={{ padding: "14px 20px", color: "#334155" }}>{log.details}</td>
+                           <td style={{ padding: "14px 20px", color: "#334155" }}>{log.details}</td>
                           </tr>
                         ))
                     )}
@@ -2051,18 +2051,15 @@ const resteAPayer = Math.max(0, (totalScolariteFixe + totalInscription + totalRa
               </div>
             </div>
           )}
-              </div>
-            </div>
-          )}
 
         </div>
       </div>
 
-  <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Enregistrer un versement" maxWidth="800px">   
- <form
-    onSubmit={handleAddPayment}
-    style={{
-      maxHeight: "80vh",
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Enregistrer un versement" maxWidth="800px">
+        <form
+          onSubmit={handleAddPayment}
+          style={{
+            maxHeight: "80vh",
       overflowY: "auto",
       paddingRight: "8px",
       width: "100%"
