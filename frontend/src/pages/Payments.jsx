@@ -565,7 +565,7 @@ export default function Payments() {
         .from("audit_logs")
         .select("*")
         .order("created_at", { ascending: false })
-        .limit(100);
+        .limit(5000);
       if (logData) setAuditLogs(logData);
     } catch (e) {
       console.error("Erreur log d'audit :", e);
